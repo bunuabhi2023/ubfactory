@@ -2,6 +2,10 @@ const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
 
+const cors = require('cors');
+app.use('/uploads', express.static('uploads'));
+app.use(cors())
+
 app.use('/uploads', express.static('uploads'));
 // load config from env file
 require("dotenv").config();
