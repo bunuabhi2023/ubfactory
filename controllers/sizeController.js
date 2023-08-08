@@ -55,7 +55,10 @@ const updateSize = async (req, res) => {
 // Function to get all sizes
 const getAllSize = async (req, res)  => {
     try {
-        const sizes = await Size.find();
+        const sizes = await Size.find()
+        .populate('createdBy', 'name')
+        .populate('updatedBy', 'name')
+        .exec();
         res.json(sizes);
     } catch (error) {
         console.error(error);
@@ -66,7 +69,10 @@ const getAllSize = async (req, res)  => {
   // Function to get a size by ID
 const getSizeById = async (req, res) => {
 try {
-    const size = await Size.findById(req.params.id);
+    const size = await Size.findById(req.params.id)
+    .populate('createdBy', 'name')
+    .populate('updatedBy', 'name')
+    .exec();
     if (!size) {
     console.log(`Size with ID ${req.params.id} not found`);
     return res.status(404).json({ error: 'Size not found' });

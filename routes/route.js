@@ -5,6 +5,8 @@ const userController = require('../controllers/userController');
 const categoryController = require('../controllers/categoryController');
 const sizeController = require('../controllers/sizeController');
 const brandController = require('../controllers/brandController');
+const productController = require('../controllers/productController');
+
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
 //Admin Route//
@@ -34,4 +36,11 @@ router.get("/get-brand",  brandController.getAllBrands);
 router.get('/get-brand-by-id/:id', brandController.getBrandById);
 router.delete('/delete-brand/:id', auth, brandController.deleteBrand);
 
+//Product Route//
+router.post("/create-product", auth, productController.createProduct);
+router.put("/update-product/:id", auth, productController.updateProduct);
+router.put("/update-product-availability/:id", auth, productController.updateAvailable);
+router.get("/get-product",  productController.getAllProducts);
+router.get("/get-product-by-id/:id",  productController.getProductById);
+router.delete('/delete-product/:id', auth, productController.deleteProduct);
 module.exports = router;

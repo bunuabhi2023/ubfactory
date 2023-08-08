@@ -94,7 +94,10 @@ const updateCategory = async (req, res) => {
 // Function to get all categories
 const getAllCategories = async (req, res)  => {
     try {
-        const categories = await Category.find();
+        const categories = await Category.find()
+        .populate('createdBy', 'name')
+        .populate('updatedBy', 'name')
+        .exec();
         const categoriesWithUrls = categories.map((category) => {
         const imageUrl = category.file ? `${req.protocol}://${req.get('host')}/uploads/${category.file}` : null;
         return { ...category._doc, imageUrl };
@@ -109,7 +112,10 @@ const getAllCategories = async (req, res)  => {
   // Function to get a category by ID
 const getCategoryById = async (req, res) => {
 try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findById(req.params.id)
+    .populate('createdBy', 'name')
+    .populate('updatedBy', 'name')
+    .exec();
     if (!category) {
     console.log(`Category with ID ${req.params.id} not found`);
     return res.status(404).json({ error: 'Category not found' });

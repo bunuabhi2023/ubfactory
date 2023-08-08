@@ -23,11 +23,13 @@ const brands = new mongoose.Schema(
             default:Date.now(),
         },
         createdBy:{
-            type:String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
             required:false,
         },
         updatedBy:{
-            type:String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
             required:false,
         },
 
