@@ -6,6 +6,7 @@ const categoryController = require('../controllers/categoryController');
 const sizeController = require('../controllers/sizeController');
 const brandController = require('../controllers/brandController');
 const productController = require('../controllers/productController');
+const discountController = require('../controllers/discountController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -43,4 +44,12 @@ router.put("/update-product-availability/:id", auth, productController.updateAva
 router.get("/get-product",  productController.getAllProducts);
 router.get("/get-product-by-id/:id",  productController.getProductById);
 router.delete('/delete-product/:id', auth, productController.deleteProduct);
+
+//Discount Route//
+router.post("/create-discount", auth, discountController.createDiscount);
+router.put("/update-discount/:id", auth, discountController.updateDiscount);
+router.get("/get-discount",  discountController.getAllDiscount);
+router.get("/get-discount-by-id/:id",  discountController.getDiscountById);
+router.delete('/delete-discount/:id', auth, discountController.deleteDiscount);
+
 module.exports = router;

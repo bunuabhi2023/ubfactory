@@ -40,7 +40,7 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Server error' });
     }
 
-    const { name, prices, categoryId } = req.body;
+    const { name, prices, categoryId, brandId, totalStock } = req.body;
     const createdBy = req.user.id;
 
     const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -54,9 +54,9 @@ const createProduct = async (req, res) => {
       categoryId,
       file,
       createdBy,
-      brandId: null,
+      brandId,
       extraFiles,
-      totalStock: null,
+      totalStock,
     });
 
     try {

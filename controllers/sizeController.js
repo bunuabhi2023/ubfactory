@@ -1,8 +1,5 @@
 const Size = require('../models/size');
 
-
-
-
 // Function to create a new Size
 const createSize = async (req, res) => {
   
