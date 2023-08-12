@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const users = new mongoose.Schema(
+const customers = new mongoose.Schema(
     {
         name:{
             type:String,
@@ -8,6 +8,11 @@ const users = new mongoose.Schema(
             maxLength:255,
         },
         email: {
+            type:String,
+            required:true,
+            maxLength:255,
+        },
+        username: {
             type:String,
             required:true,
             maxLength:255,
@@ -64,10 +69,6 @@ const users = new mongoose.Schema(
             required:false,
             maxLength:255,
         },
-        role:{
-            type:String,
-            enum:["Admin", "Vendor"]
-        },
         createdAt:{
             type:Date,
             required:true,
@@ -81,4 +82,4 @@ const users = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model("User", users);
+module.exports = mongoose.model("Customer", customers);
