@@ -4,7 +4,15 @@ const cookieParser = require('cookie-parser');
 
 const cors = require('cors');
 app.use('/uploads', express.static('uploads'));
-app.use(cors())
+app.use(
+    cors({
+        origin: [
+            "http://localhost:3000",
+            "https://ubfactory-frontend.vercel.app"
+          ],
+          credentials: true,
+    })
+  );
 
 app.use('/uploads', express.static('uploads'));
 // load config from env file
@@ -29,4 +37,3 @@ app.listen(PORT, () =>{
 //connect to the database
 const dbConnect = require("./config/database");
 dbConnect();
-

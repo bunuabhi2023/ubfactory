@@ -1,4 +1,5 @@
 const Brand = require('../models/brand');
+
 const multer = require('multer');
 
 
@@ -94,7 +95,10 @@ const updateBrand = async (req, res) => {
 // Function to get all Brands
 const getAllBrands = async (req, res)  => {
     try {
-        const brands = await Brand.find();
+        const brands = await Brand.find()
+        .populate('createdBy', 'name')
+        .populate('updatedBy','name')
+        .exec();
         const brandsWithUrls = brands.map((brand) => {
         const imageUrl = brand.file ? `${req.protocol}://${req.get('host')}/uploads/${brand.file}` : null;
         return { ...brand._doc, imageUrl };
@@ -109,7 +113,10 @@ const getAllBrands = async (req, res)  => {
   // Function to get a Brand by ID
 const getBrandById = async (req, res) => {
 try {
-    const brand = await Brand.findById(req.params.id);
+    const brand = await Brand.findById(req.params.id)
+    .populate('createdBy', 'name')
+    .populate('updatedBy', 'name')
+    .exec();
     if (!brand) {
     console.log(`Brand with ID ${req.params.id} not found`);
     return res.status(404).json({ error: 'Brand not found' });
