@@ -32,17 +32,17 @@ exports.auth = async(req, res , next) => {
 exports.isAdmin = (req,res,next) => {
     try{
             if(req.user.role !== "Admin") {
-                return res.status(401).json({
+                return res.status(405).json({
                     success:false,
-                    message:'THis is a protected route for Admin',
+                    message:'This is a protected route for Admin',
                 });
             }
             next();
     }
     catch(error) {
-        return res.status(500).json({
+        return res.status(405).json({
             success:false,
-            message:'User Role is not matching',
+            message:'Method not allowed',
         })
     }
 }
@@ -50,17 +50,17 @@ exports.isAdmin = (req,res,next) => {
 exports.isVendor = (req,res,next) => {
     try{
         if(req.user.role !== "Vendor") {
-            return res.status(401).json({
+            return res.status(405).json({
                 success:false,
-                message:'THis is a protected route for vendor',
+                message:'This is a protected route for vendor',
             });
         }
         next();
 }
 catch(error) {
-    return res.status(500).json({
+    return res.status(405).json({
         success:false,
-        message:'User Role is not matching',
+        message:'Method not allowed',
     })
 }
 }
