@@ -40,7 +40,7 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Server error' });
     }
 
-    const { name, prices, categoryId, brandId, totalStock } = req.body;
+    const { name, description, prices, categoryId, brandId, totalStock } = req.body;
     const createdBy = req.user.id;
 
     const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -50,6 +50,7 @@ const createProduct = async (req, res) => {
 
     const newProduct = new Product({
       name,
+      description,
       prices,
       categoryId,
       file,
@@ -83,7 +84,7 @@ const updateProduct = async (req, res) => {
         }
 
         const productId = req.params.id; 
-        const { name, prices, categoryId, brandId } = req.body;
+        const { name,description, prices, categoryId, brandId } = req.body;
         const updatedBy = req.user.id;
 
         const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -94,7 +95,7 @@ const updateProduct = async (req, res) => {
           try {
             const updatedProduct = await Product.findByIdAndUpdate(
                 productId,
-              { name, file,prices, categoryId, brandId, extraFiles,  updatedBy, updatedAt: Date.now() },
+              { name, description, file, prices, categoryId, brandId, extraFiles,  updatedBy, updatedAt: Date.now() },
               { new: true }
             );
       

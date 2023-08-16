@@ -1,9 +1,11 @@
 const Discount = require('../models/discount');
+const Category =require('../models/category');
 
 
 const createDiscount = async (req, res) => {
   
-    const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId  } = req.body;
+    const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId, 
+      categoryIds, } = req.body;
     const createdBy = req.user.id;
 
 
@@ -18,6 +20,7 @@ const createDiscount = async (req, res) => {
         customerType,
         productId,
         createdBy,
+        categoryIds,
       });
 
     try {
@@ -34,14 +37,16 @@ const createDiscount = async (req, res) => {
 const updateDiscount = async (req, res) => {
     
   
-  const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId } = req.body;
+  const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId,
+    categoryIds, } = req.body;
   const updatedBy = req.user.id;
 
 
   try {
     const updatedDiscount = await Discount.findByIdAndUpdate(
       req.params.id,
-      { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId, updatedBy, updatedAt: Date.now() },
+      { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId,
+        categoryIds, updatedBy, updatedAt: Date.now() },
       { new: true }
     );
 
@@ -61,38 +66,72 @@ const updateDiscount = async (req, res) => {
 // Function to get all discount
 const getAllDiscount = async (req, res)  => {
   try {
-      const discounts = await Discount.find()
+    const discounts = await Discount.find()
       .populate('createdBy', 'name')
       .populate('updatedBy', 'name')
       .populate('productId', 'name')
       .exec();
-      res.json(discounts);
+
+    const populatedDiscounts = await Promise.all(discounts.map(async discount => {
+      const populatedCategories = await Category.find({
+        _id: { $in: discount.categoryIds }
+      }, 'name');
+
+      const categoryObjects = populatedCategories.map(category => ({
+        _id: category._id,
+        name: category.name
+      }));
+
+      return {
+        ...discount.toObject(),
+        categoryIds: categoryObjects,
+      };
+    }));
+
+    res.json(populatedDiscounts);
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to fetch discounts' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to fetch discounts' });
   }
 };
+
+
 
 // Function to get a discount by ID
 const getDiscountById = async (req, res) => {
-try {
-  const discount = await Discount.findById(req.params.id)
-  .populate('createdBy', 'name')
-  .populate('updatedBy', 'name')
-  .populate('productId', 'name')
-  .exec();
-  if (!discount) {
-  console.log(`discount with ID ${req.params.id} not found`);
-  return res.status(404).json({ error: 'discount not found' });
+  try {
+    const discount = await Discount.findById(req.params.id)
+      .populate('createdBy', 'name')
+      .populate('updatedBy', 'name')
+      .populate('productId', 'name')
+      .exec();
+
+    if (!discount) {
+      console.log(`Discount with ID ${req.params.id} not found`);
+      return res.status(404).json({ error: 'Discount not found' });
+    }
+
+    const populatedCategories = await Category.find({
+      _id: { $in: discount.categoryIds }
+    }, 'name');
+
+    const categoryObjects = populatedCategories.map(category => ({
+      _id: category._id,
+      name: category.name
+    }));
+
+    const populatedDiscount = {
+      ...discount.toObject(),
+      categoryIds: categoryObjects,
+    };
+
+    res.json(populatedDiscount);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to fetch discount' });
   }
-
-
-  res.json(discount);
-} catch (error) {
-  console.error(error);
-  return res.status(500).json({ error: 'Failed to fetch discount' });
-}
 };
+
 
 // Function to delete a discount by ID
 const deleteDiscount = async (req, res) => {

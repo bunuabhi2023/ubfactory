@@ -29,6 +29,58 @@ const storage = multer.diskStorage({
     fileFilter: fileFilter,
   }).single('file');
 
+exports.createCustomer = async(req,res) =>{
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: 'Error uploading image' });
+    } else if (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+
+    const { name, email, mobile, password, username } = req.body;
+    
+        // Check if the email or mobile already exists in the database
+        const existingCustomer = await Customer.findOne({
+          $or: [{ email }, { mobile }, { username }],
+        });
+    
+        if (existingCustomer) {
+          return res.status(400).json({ message: 'Email or mobile or Username already exists' });
+        }
+    
+        // Hash the password before saving it to the database
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const file = req.file ? req.file.filename : undefined;
+        // Create the new customer object with the hashed password
+        const newCustomer = new Customer({
+          name,
+          email,
+          mobile,
+          password: hashedPassword,
+          username,
+          email_otp: null,
+          mobile_otp: null,
+          dob: null,
+          latitude: null,
+          longitude: null,
+          mobile_verified_at: null,
+          email_verified_at: null,
+          file,
+        });
+
+        try {
+          const savedCustomer = await newCustomer.save();
+          console.log(savedCustomer); // Add this line for debug logging
+          res.json(savedCustomer);
+        } catch (error) {
+          console.error(error); // Add this line for debug logging
+          return res.status(500).json({ error: 'Failed to create customer' });
+        }
+     
+
+  });
+}
 exports.signup = async(req,res) =>{
     try {
         const { name, email, mobile, password, username } = req.body;
@@ -60,7 +112,6 @@ exports.signup = async(req,res) =>{
           longitude: null,
           mobile_verified_at: null,
           email_verified_at: null,
-          status: null,
           file: null,
         });
     
