@@ -40,14 +40,19 @@ const discounts = new mongoose.Schema(
             required:false,
             maxLength:255,
         },
-        productId: {
+        productIds: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
             required:false,
-        },
+        }],
         categoryIds: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
+            required: false,
+        }],
+        brandIds: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Brand',
             required: false,
         }],
         createdAt:{

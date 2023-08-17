@@ -1,11 +1,13 @@
 const Discount = require('../models/discount');
-const Category =require('../models/category');
+const Category = require('../models/category');
+const Product = require('../models/product');
+const Brand = require('../models/brand');
 
 
 const createDiscount = async (req, res) => {
   
-    const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId, 
-      categoryIds, } = req.body;
+    const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productIds, 
+      categoryIds, brandIds } = req.body;
     const createdBy = req.user.id;
 
 
@@ -18,9 +20,10 @@ const createDiscount = async (req, res) => {
         minimumOrderValue,
         dailyTimeSlot,
         customerType,
-        productId,
+        productIds,
         createdBy,
         categoryIds,
+        brandIds,
       });
 
     try {
@@ -37,8 +40,8 @@ const createDiscount = async (req, res) => {
 const updateDiscount = async (req, res) => {
     
   
-  const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId,
-    categoryIds, } = req.body;
+  const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productIds,
+    categoryIds, brandIds} = req.body;
   const updatedBy = req.user.id;
 
 
@@ -46,7 +49,7 @@ const updateDiscount = async (req, res) => {
     const updatedDiscount = await Discount.findByIdAndUpdate(
       req.params.id,
       { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId,
-        categoryIds, updatedBy, updatedAt: Date.now() },
+        categoryIds, brandIds, updatedBy, updatedAt: Date.now() },
       { new: true }
     );
 
@@ -69,7 +72,6 @@ const getAllDiscount = async (req, res)  => {
     const discounts = await Discount.find()
       .populate('createdBy', 'name')
       .populate('updatedBy', 'name')
-      .populate('productId', 'name')
       .exec();
 
     const populatedDiscounts = await Promise.all(discounts.map(async discount => {
@@ -82,10 +84,33 @@ const getAllDiscount = async (req, res)  => {
         name: category.name
       }));
 
+      const populatedProducts = await Product.find({
+        _id: { $in: discount.productIds }
+      }, 'name');
+
+      const productObjects = populatedProducts.map(product => ({
+        _id: product._id,
+        name: product.name
+      }));
+
+      const populatedBrands = await Brand.find({
+        _id: { $in: discount.brandIds }
+      }, 'name');
+
+      const brandObjects = populatedBrands.map(brand => ({
+        _id: brand._id,
+        name: brand.name
+      }));
+
       return {
         ...discount.toObject(),
         categoryIds: categoryObjects,
+        productIds: productObjects,
+        brandIds: brandObjects,
       };
+
+      
+
     }));
 
     res.json(populatedDiscounts);
@@ -103,7 +128,6 @@ const getDiscountById = async (req, res) => {
     const discount = await Discount.findById(req.params.id)
       .populate('createdBy', 'name')
       .populate('updatedBy', 'name')
-      .populate('productId', 'name')
       .exec();
 
     if (!discount) {
@@ -120,9 +144,29 @@ const getDiscountById = async (req, res) => {
       name: category.name
     }));
 
+    const populatedProducts = await Product.find({
+      _id: { $in: discount.productIds }
+    }, 'name');
+
+    const productObjects = populatedProducts.map(product => ({
+      _id: product._id,
+      name: product.name
+    }));
+
+    const populatedBrands = await Brand.find({
+      _id: { $in: discount.brandIds }
+    }, 'name');
+
+    const brandObjects = populatedBrands.map(brand => ({
+      _id: brand._id,
+      name: brand.name
+    }));
+
     const populatedDiscount = {
       ...discount.toObject(),
       categoryIds: categoryObjects,
+      productIds: productObjects,
+      brandIds: brandObjects,
     };
 
     res.json(populatedDiscount);

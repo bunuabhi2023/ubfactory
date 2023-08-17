@@ -29,58 +29,7 @@ const storage = multer.diskStorage({
     fileFilter: fileFilter,
   }).single('file');
 
-exports.createCustomer = async(req,res) =>{
-  upload(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: 'Error uploading image' });
-    } else if (err) {
-      return res.status(500).json({ error: 'Server error' });
-    }
 
-    const { name, email, mobile, password, username } = req.body;
-    
-        // Check if the email or mobile already exists in the database
-        const existingCustomer = await Customer.findOne({
-          $or: [{ email }, { mobile }, { username }],
-        });
-    
-        if (existingCustomer) {
-          return res.status(400).json({ message: 'Email or mobile or Username already exists' });
-        }
-    
-        // Hash the password before saving it to the database
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const file = req.file ? req.file.filename : undefined;
-        // Create the new customer object with the hashed password
-        const newCustomer = new Customer({
-          name,
-          email,
-          mobile,
-          password: hashedPassword,
-          username,
-          email_otp: null,
-          mobile_otp: null,
-          dob: null,
-          latitude: null,
-          longitude: null,
-          mobile_verified_at: null,
-          email_verified_at: null,
-          file,
-        });
-
-        try {
-          const savedCustomer = await newCustomer.save();
-          console.log(savedCustomer); // Add this line for debug logging
-          res.json(savedCustomer);
-        } catch (error) {
-          console.error(error); // Add this line for debug logging
-          return res.status(500).json({ error: 'Failed to create customer' });
-        }
-     
-
-  });
-}
 exports.signup = async(req,res) =>{
     try {
         const { name, email, mobile, password, username } = req.body;
@@ -237,16 +186,29 @@ exports.updateMyProfile = async(req, res) =>{
         const file = req.file ? req.file.filename : undefined;
     
         try {
+          const existingCustomer = await Customer.findById(req.params.id);
+    
+          if (!existingCustomer) {
+            return res.status(404).json({ error: 'Customer not found' });
+          }
+    
+          // Check if the provided email or mobile already exist for other customers
+          const duplicateCustomer = await Customer.findOne({
+            $and: [
+              { _id: { $ne: existingCustomer._id } }, // Exclude the current customer
+              { $or: [{ email }, { mobile }] }, // Check for matching email or mobile
+            ],
+          });
+    
+          if (duplicateCustomer) {
+            return res.status(400).json({ error: 'Email or mobile already exists for another customer' });
+          }
+    
           const updatedCustomer = await Customer.findByIdAndUpdate(
             req.params.id,
             { name, email, mobile, dob, username, file, updatedBy, updatedAt: Date.now() },
             { new: true }
           );
-    
-          if (!updatedCustomer) {
-            console.log(`Customer with ID ${req.params.id} not found`);
-            return res.status(404).json({ error: 'Customer not found' });
-          }
     
           console.log(updatedCustomer); // Add this line for debug logging
           res.json(updatedCustomer);
@@ -274,20 +236,67 @@ exports.getAllCustomers = async (req, res)  => {
   
   
 exports.getCustomerById = async (req, res) => {
-try {
-    const customer = await Customer.findById(req.params.id).select('-password');
-    if (!customer) {
-    console.log(`customer with ID ${req.params.id} not found`);
-    return res.status(404).json({ error: 'customer not found' });
+  try {
+      const customer = await Customer.findById(req.params.id).select('-password');
+      if (!customer) {
+      console.log(`customer with ID ${req.params.id} not found`);
+      return res.status(404).json({ error: 'customer not found' });
+      }
+
+    
+      const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
+      const customerWithUrl = { ...customer._doc, imageUrl };
+
+      res.json(customerWithUrl);
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to fetch customer' });
+  }
+};
+
+exports.updateCustomer = async(req,res) =>{
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: 'Error uploading image' });
+    } else if (err) {
+      return res.status(500).json({ error: 'Server error' });
     }
 
-   
-    const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
-    const customerWithUrl = { ...customer._doc, imageUrl };
+    const { name, email, mobile, dob, username } = req.body;
+    const updatedBy = req.user.id;
 
-    res.json(customerWithUrl);
-} catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to fetch customer' });
+    const file = req.file ? req.file.filename : undefined;
+
+    try {
+      const existingCustomer = await Customer.findById(req.params.id);
+
+      if (!existingCustomer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+
+      // Check if the provided email or mobile already exist for other customers
+      const duplicateCustomer = await Customer.findOne({
+        $and: [
+          { _id: { $ne: existingCustomer._id } }, // Exclude the current customer
+          { $or: [{ email }, { mobile }] }, // Check for matching email or mobile
+        ],
+      });
+
+      if (duplicateCustomer) {
+        return res.status(400).json({ error: 'Email or mobile already exists for another customer' });
+      }
+
+      const updatedCustomer = await Customer.findByIdAndUpdate(
+        req.params.id,
+        { name, email, mobile, dob, username, file, updatedBy, updatedAt: Date.now() },
+        { new: true }
+      );
+
+      console.log(updatedCustomer); // Add this line for debug logging
+      res.json(updatedCustomer);
+    } catch (error) {
+      console.error(error); // Add this line for debug logging
+      return res.status(500).json({ error: 'Failed to update Customer' });
+    }
+  });
 }
-};
