@@ -26,7 +26,7 @@ router.get("/get-my-profile", customerAuth, customerController.getMyProfile);
 router.put("/update-my-profile/:id", customerAuth, customerController.updateMyProfile);
 router.get("/get-customer",  auth, isAdmin, customerController.getAllCustomers);
 router.get('/get-customer-by-id/:id', auth, isAdmin, customerController.getCustomerById);
-router.post('/create-customer', auth, isAdmin, customerController.createCustomer);
+router.post('/update-customer/:id', auth, isAdmin, customerController.updateCustomer);
 
 //Category Route//
 router.post("/create-category", auth, isAdmin, categoryController.createCategory);
