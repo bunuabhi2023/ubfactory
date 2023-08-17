@@ -62,7 +62,7 @@ const customers = new mongoose.Schema(
         status: {
             type:String,
             required:false,
-            maxLength:50,
+            default: 'active',
         },
         file: {
             type:String,

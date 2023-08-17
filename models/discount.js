@@ -45,6 +45,11 @@ const discounts = new mongoose.Schema(
             ref: 'Product',
             required:false,
         },
+        categoryIds: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
+            required: false,
+        }],
         createdAt:{
             type:Date,
             required:true,
