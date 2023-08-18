@@ -7,59 +7,25 @@ const discounts = new mongoose.Schema(
             required:true,
             maxLength:255,
         },
-        discountAmount: {
+        file: {
             type:String,
             required:false,
             maxLength:255,
         },
-        discountPercentage: {
-            type:String,
-            required:false,
-            maxLength:255,
-        },
-        startFrom: {
-            type:Date,
-            required:false,
-        },
-        endTo: {
-            type:Date,
-            required:false,
-        },
-        minimumOrderValue: {
-            type:String,
-            required:false,
-            maxLength:255,
-        },
-        dailyTimeSlot: {
-            type:String,
-            required:false,
-            maxLength:255,
-        },
-        customerType: {
-            type:String,
-            required:false,
-            maxLength:255,
-        },
-        productIds: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-            required:false,
-        }],
-        categoryIds: [{
+        categoryId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
             required: false,
-        }],
-        quantity: [{
-            type: String,
-            required: false,
-            maxLength:255,
-        }],
-        brandIds: [{
+        },
+        productId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Brand',
+            ref: 'Product',
             required: false,
-        }],
+        },
+        status: {
+            type:String,
+            enum:["Publish", "Draft", "Pending"]
+        },
         createdAt:{
             type:Date,
             required:true,
