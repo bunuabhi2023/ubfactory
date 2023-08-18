@@ -40,7 +40,7 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Server error' });
     }
 
-    const { name, description, quantity, prices, categoryId, brandId, totalStock } = req.body;
+    const { name, description, prices, categoryId, brandId, totalStock } = req.body;
     const createdBy = req.user.id;
 
     const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -51,7 +51,6 @@ const createProduct = async (req, res) => {
     const newProduct = new Product({
       name,
       description,
-      quantity,
       prices,
       categoryId,
       file,
@@ -85,7 +84,7 @@ const updateProduct = async (req, res) => {
         }
 
         const productId = req.params.id; 
-        const { name,description, quantity, prices, categoryId, brandId } = req.body;
+        const { name,description, prices, categoryId, brandId } = req.body;
         const updatedBy = req.user.id;
 
         const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -96,7 +95,7 @@ const updateProduct = async (req, res) => {
           try {
             const updatedProduct = await Product.findByIdAndUpdate(
                 productId,
-              { name, description, quantity, file, prices, categoryId, brandId, extraFiles,  updatedBy, updatedAt: Date.now() },
+              { name, description, file, prices, categoryId, brandId, extraFiles,  updatedBy, updatedAt: Date.now() },
               { new: true }
             );
       
@@ -129,22 +128,22 @@ const getAllProducts = async (req, res) => {
             const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
             const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-            // const pricesArray = JSON.parse(product.prices); // Parse the prices string into an array
+            const pricesArray = JSON.parse(product.prices); // Parse the prices string into an array
 
-            // const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-            //     const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
-            //   // console.log(sizeInfo);
-            //     return {
-            //         ...price,
-            //         sizeName: sizeInfo ? sizeInfo.size : null,
-            //     };
-            // }));
+            const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
+                const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
+              // console.log(sizeInfo);
+                return {
+                    ...price,
+                    sizeName: sizeInfo ? sizeInfo.size : null,
+                };
+            }));
 
             return {
                 ...product._doc,
                 fileUrl,
                 extraFilesUrls,
-               // prices: pricesWithSizeNames,
+                prices: pricesWithSizeNames,
             };
         }));
 
@@ -173,21 +172,21 @@ const getProductById = async (req, res) => {
       const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
       const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-      // const pricesArray = JSON.parse(product.prices);
+      const pricesArray = JSON.parse(product.prices);
 
-      // const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-      //     const sizeInfo = await Size.findById(price.sizeId).select('size');
-      //     return {
-      //         ...price,
-      //         sizeName: sizeInfo ? sizeInfo.size : null,
-      //     };
-      // }));
+      const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
+          const sizeInfo = await Size.findById(price.sizeId).select('size');
+          return {
+              ...price,
+              sizeName: sizeInfo ? sizeInfo.size : null,
+          };
+      }));
 
       const productWithUrls = {
           ...product._doc,
           fileUrl,
           extraFilesUrls,
-          //prices: pricesWithSizeNames,
+          prices: pricesWithSizeNames,
       };
 
       res.json(productWithUrls);
