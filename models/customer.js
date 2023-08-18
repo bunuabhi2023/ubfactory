@@ -69,6 +69,11 @@ const customers = new mongoose.Schema(
             required:false,
             maxLength:255,
         },
+        wishList: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: false,
+        }],
         createdAt:{
             type:Date,
             required:true,

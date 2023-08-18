@@ -1,4 +1,6 @@
 const Customer = require ('../models/customer');
+const Product = require('../models/product');
+const Size = require('../models/size');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { options } = require("../routes/route");
@@ -300,3 +302,107 @@ exports.updateCustomer = async(req,res) =>{
     }
   });
 }
+
+exports.getMyWishlist = async(req, res) =>{
+  try {
+    const authenticatedUser = req.customer;
+
+    const customerId = authenticatedUser._id;
+
+    const customer = await Customer.findById(customerId).select('-password').populate('wishList');
+
+    if (!customer) {
+      return res.status(404).json({ message: 'customer not found' });
+    }
+
+    const wishlistDetails = await Promise.all(customer.wishList.map(async (wishlistItem) => {
+      console.log(wishlistItem._id);
+      const product = await Product.findById(wishlistItem._id)
+        .populate('brandId', 'name')
+        .populate('categoryId', 'name')
+        .populate('createdBy', 'name')
+        .populate('updatedBy', 'name')
+        .exec();
+    
+    if (!product) {
+      return null; // Handle the case where the product is not found
+    }
+    const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+    const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+    const pricesArray = JSON.parse(product.prices);
+
+    const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
+        const sizeInfo = await Size.findById(price.sizeId).select('size');
+        return {
+            ...price,
+            sizeName: sizeInfo ? sizeInfo.size : null,
+        };
+    }));
+
+    const productWithUrls = {
+        ...product._doc,
+        fileUrl,
+        extraFilesUrls,
+        prices: pricesWithSizeNames,
+    };
+      return productWithUrls;
+  }));
+
+    return res.json({ wishlistDetails });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+}
+
+exports.addToWishList = async (req, res) => {
+  try {
+
+    const authenticatedUser = req.customer;
+
+    const customerId = authenticatedUser._id;
+    const {productId } = req.body; 
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    if (!customer.wishList.includes(productId)) {
+      customer.wishList.push(productId);
+      await customer.save();
+    }
+
+    return res.status(200).json({ message: 'Product added to wishlist successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'An error occurred' });
+  }
+};
+
+exports.removeFromWishList = async (req, res) => {
+  try {
+    const authenticatedUser = req.customer;
+
+    const customerId = authenticatedUser._id;
+    const { productId } = req.body;
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    const productIndex = customer.wishList.indexOf(productId);
+    if (productIndex !== -1) {
+      customer.wishList.splice(productIndex, 1); // Remove the product from the wishlist array
+      await customer.save();
+      return res.status(200).json({ message: 'Product removed from wishlist successfully' });
+    } else {
+      return res.status(404).json({ message: 'Product not found in wishlist' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'An error occurred' });
+  }
+};

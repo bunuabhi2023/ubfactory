@@ -27,6 +27,9 @@ router.get("/get-my-profile", customerAuth, customerController.getMyProfile);
 router.put("/update-my-profile/:id", customerAuth, customerController.updateMyProfile);
 router.get("/get-customer",  auth, isAdmin, customerController.getAllCustomers);
 router.get('/get-customer-by-id/:id', auth, isAdmin, customerController.getCustomerById);
+router.get("/get-my-wishlist",  customerAuth, customerController.getMyWishlist);
+router.post("/add-to-wishlist",  customerAuth, customerController.addToWishList);
+router.post("/remove-from-wishlist",  customerAuth, customerController.removeFromWishList);
 router.post('/update-customer/:id', auth, isAdmin, customerController.updateCustomer);
 
 //Category Route//
@@ -56,6 +59,8 @@ router.put("/update-product/:id", auth, isAdmin, productController.updateProduct
 router.put("/update-product-availability/:id", auth, productController.updateAvailable);
 router.get("/get-product",  productController.getAllProducts);
 router.get("/get-product-by-id/:id",  productController.getProductById);
+router.get("/get-product-by-category/:categoryId",  productController.getProductByCategory);
+router.get("/get-best-saling-products",  productController.getBestSalingProducts);
 router.delete('/delete-product/:id', auth, isAdmin, productController.deleteProduct);
 
 //Discount Route//

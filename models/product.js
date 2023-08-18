@@ -45,6 +45,11 @@ const products = new mongoose.Schema({
         required: false,
         default: 0,
     },
+    saleCount: {
+        type: Number,
+        required: false,
+        default: 0,
+    },
     createdAt: {
         type: Date,
         required: true,

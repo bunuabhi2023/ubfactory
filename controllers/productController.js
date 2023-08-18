@@ -228,6 +228,89 @@ const updateAvailable = async(req, res) =>{
   }
 };
 
+const getBestSalingProducts = async (req, res) => {
+  try {
+      const products = await Product.find()
+          .populate('brandId', 'name')
+          .populate('categoryId', 'name')
+          .populate('createdBy', 'name')
+          .populate('updatedBy', 'name')
+          .exec();
+
+      const productsWithUrls = await Promise.all(products.map(async (product) => {
+        const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+        const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+          const pricesArray = JSON.parse(product.prices);
+          const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
+            const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
+            // console.log(sizeInfo);
+              return {
+                  ...price,
+                  sizeName: sizeInfo ? sizeInfo.size : null,
+              };
+          }));
+
+          return {
+              ...product._doc,
+              fileUrl,
+              extraFilesUrls,
+              prices: pricesWithSizeNames,
+          };
+      }));
+
+      // Sort products by saleCount in descending order
+      productsWithUrls.sort((a, b) => b.saleCount - a.saleCount);
+
+      // Get the top two products
+      const topTwoProducts = productsWithUrls.slice(0, 10);
+
+      res.json(topTwoProducts);
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to fetch products' });
+  }
+};
+
+const getProductByCategory = async (req, res) => {
+  const categoryId = req.params.categoryId;
+
+    try {
+        const products = await Product.find({ categoryId })
+            .populate('brandId', 'name')
+            .populate('categoryId', 'name')
+            .populate('createdBy', 'name')
+            .populate('updatedBy', 'name')
+            .exec();
+
+        const productsWithUrls = await Promise.all(products.map(async (product) => {
+          const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+          const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+            const pricesArray = JSON.parse(product.prices);
+            const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
+              const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
+              // console.log(sizeInfo);
+                return {
+                    ...price,
+                    sizeName: sizeInfo ? sizeInfo.size : null,
+                };
+            }));
+
+            return {
+                ...product._doc,
+                fileUrl,
+                extraFilesUrls,
+                prices: pricesWithSizeNames,
+            };
+        }));
+
+        res.json(productsWithUrls);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to fetch products by category' });
+    }
+};
 
 module.exports = {
   createProduct,
@@ -236,4 +319,9 @@ module.exports = {
   getProductById,
   deleteProduct,
   updateAvailable,
+  getBestSalingProducts,
+  getProductByCategory,
 };
+
+
+
