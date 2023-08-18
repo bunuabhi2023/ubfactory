@@ -17,6 +17,7 @@ const {customerAuth} = require('../middlewares/CustomerAuth');
 router.post("/register-user", userController.signUp);
 router.post("/login-user", userController.login);
 router.get("/my-profile", auth, userController.getUser);//auth
+router.put("/update-user/:id", auth, userController.updateUser);
 
 
 //Customer Route//

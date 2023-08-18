@@ -7,7 +7,7 @@ const Brand = require('../models/brand');
 const createDiscount = async (req, res) => {
   
     const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productIds, 
-      categoryIds, brandIds } = req.body;
+      categoryIds, quantity, brandIds } = req.body;
     const createdBy = req.user.id;
 
 
@@ -23,6 +23,7 @@ const createDiscount = async (req, res) => {
         productIds,
         createdBy,
         categoryIds,
+        quantity,
         brandIds,
       });
 
@@ -41,7 +42,7 @@ const updateDiscount = async (req, res) => {
     
   
   const { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productIds,
-    categoryIds, brandIds} = req.body;
+    categoryIds, quantity, brandIds} = req.body;
   const updatedBy = req.user.id;
 
 
@@ -49,7 +50,7 @@ const updateDiscount = async (req, res) => {
     const updatedDiscount = await Discount.findByIdAndUpdate(
       req.params.id,
       { title, startFrom, endTo, discountAmount, discountPercentage, minimumOrderValue, dailyTimeSlot, customerType, productId,
-        categoryIds, brandIds, updatedBy, updatedAt: Date.now() },
+        categoryIds, quantity, brandIds, updatedBy, updatedAt: Date.now() },
       { new: true }
     );
 

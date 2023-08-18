@@ -3,6 +3,31 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { options } = require("../routes/route");
 require("dotenv").config();
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './uploads/'); // Set the destination folder for uploaded images
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + '-' + file.originalname); // Set the filename for the uploaded image
+    },
+  });
+  
+  const fileFilter = (req, file, cb) => {
+    // Check file type to allow only images
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed.'), false);
+    }
+  };
+  
+  const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+  }).single('file');
 
 exports.signUp = async (req, res) => {
     try {
@@ -37,6 +62,10 @@ exports.signUp = async (req, res) => {
         email_verified_at: null,
         status: null,
         file: null,
+        city: null, 
+        state: 'active', 
+        pincode: null,
+        address: null,
       });
   
       // Save the new customer to the database
@@ -147,4 +176,50 @@ exports.getUser = async (req, res) => {
   }
 };
 
+exports.updateUser = async(req,res) =>{
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: 'Error uploading image' });
+    } else if (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+
+    const { name, email, mobile, dob, city, state, pincode,address, status} = req.body;
+    const updatedBy = req.user.id;
+
+    const file = req.file ? req.file.filename : undefined;
+
+    try {
+      const existingUser = await User.findById(req.params.id);
+
+      if (!existingUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      
+      const duplicateUser = await User.findOne({
+        $and: [
+          { _id: { $ne: existingUser._id } }, 
+          { $or: [{ email }, { mobile }] }, 
+        ],
+      });
+
+      if (duplicateUser) {
+        return res.status(400).json({ error: 'Email or mobile already exists for another user' });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        { name, email, mobile, dob, file, city, state, pincode,address, status, updatedBy, updatedAt: Date.now() },
+        { new: true }
+      );
+
+      console.log(updatedUser); // Add this line for debug logging
+      res.json(updatedUser);
+    } catch (error) {
+      console.error(error); // Add this line for debug logging
+      return res.status(500).json({ error: 'Failed to update User' });
+    }
+  });
+}
   

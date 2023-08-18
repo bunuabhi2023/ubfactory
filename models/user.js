@@ -68,6 +68,26 @@ const users = new mongoose.Schema(
             type:String,
             enum:["Admin", "Vendor"]
         },
+        city:{
+            type:String,
+            required:false,
+            maxLength:255,
+        },
+        state:{
+            type:String,
+            required:false,
+            maxLength:255,
+        },
+        pincode:{
+            type:String,
+            required:false,
+            maxLength:50,
+        },
+        address:{
+            type:String,
+            required:false,
+            maxLength:255,
+        },
         createdAt:{
             type:Date,
             required:true,

@@ -50,6 +50,11 @@ const discounts = new mongoose.Schema(
             ref: 'Category',
             required: false,
         }],
+        quantity: [{
+            type: String,
+            required: false,
+            maxLength:255,
+        }],
         brandIds: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Brand',
