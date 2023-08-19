@@ -69,6 +69,54 @@ const addToCart = async (req,res) =>{
     }
 }
 
+const removeFromCart = async (req, res) => {
+    const { productId, sizeId } = req.params;
+    const authenticatedUser = req.customer;
+    const customerId = authenticatedUser._id;
+
+    try {
+        // Check if the customer's cart exists
+        let cart = await Cart.findOne({ customerId });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: "Cart not found" });
+        }
+
+        console.log("Cart:", cart); // Log the cart object for inspection
+        // const cartD = cart._doc.cartDetails;
+        // const d = cartD._doc;
+        // console.log(d);
+        // Find the index of the product with the given productId and sizeId in the cartDetails array
+        const itemIndex = cart._doc.cartDetails.findIndex(
+            (item) =>
+                item && // Check if item exists
+                item.productId && // Check if productId property exists
+                item.productId.toString() === productId.toString() && 
+                item.sizeId && // Check if sizeId property exists
+                item.sizeId.toString() === sizeId.toString()
+        );
+
+        console.log("itemIndex:", itemIndex);
+
+        if (itemIndex === -1) {
+            return res.status(404).json({ success: false, message: "Item not found in the cart" });
+        }
+
+        // Remove the item from the cartDetails array and update the cartCount
+        const removedItem = cart.cartDetails.splice(itemIndex, 1)[0];
+        cart.cartCount -= removedItem.quantity;
+
+        // Update the cart in the database
+        await cart.save();
+
+        return res.status(200).json({ success: true, message: "Item removed from cart successfully" });
+    } catch (error) {
+        console.error("Error removing item from cart:", error);
+        return res.status(500).json({ success: false, message: "Error removing item from cart" });
+    }
+}
+
+
 module.exports = {
     addToCart,
+    removeFromCart,
   };
