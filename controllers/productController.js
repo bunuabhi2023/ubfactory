@@ -40,9 +40,9 @@ const createProduct = async (req, res) => {
       return res.status(500).json({ error: 'Server error' });
     }
 
-    const { name, description, prices, categoryId, brandId, totalStock } = req.body;
+    const { name, description, categoryId, brandId, totalStock } = req.body;
     const createdBy = req.user.id;
-
+    const prices = JSON.parse(req.body.prices);
     const file = req.files['file'] ? req.files['file'][0].filename : undefined;
     const extraFiles = req.files['extraFiles']
       ? req.files['extraFiles'].map((file) => file.filename)
@@ -84,7 +84,9 @@ const updateProduct = async (req, res) => {
         }
 
         const productId = req.params.id; 
-        const { name,description, prices, categoryId, brandId } = req.body;
+        const { name,description,  categoryId, brandId } = req.body;
+        
+        const prices = JSON.parse(req.body.prices);
         const updatedBy = req.user.id;
 
         const file = req.files['file'] ? req.files['file'][0].filename : undefined;
@@ -128,13 +130,13 @@ const getAllProducts = async (req, res) => {
             const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
             const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-            const pricesArray = JSON.parse(product.prices); // Parse the prices string into an array
+            const pricesArray = product.prices; 
 
             const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
                 const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
               // console.log(sizeInfo);
                 return {
-                    ...price,
+                    ...price._doc,
                     sizeName: sizeInfo ? sizeInfo.size : null,
                 };
             }));
@@ -172,12 +174,12 @@ const getProductById = async (req, res) => {
       const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
       const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-      const pricesArray = JSON.parse(product.prices);
+      const pricesArray = product.prices;
 
       const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
           const sizeInfo = await Size.findById(price.sizeId).select('size');
           return {
-              ...price,
+              ...price._doc,
               sizeName: sizeInfo ? sizeInfo.size : null,
           };
       }));
@@ -241,12 +243,12 @@ const getBestSalingProducts = async (req, res) => {
         const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
         const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-          const pricesArray = JSON.parse(product.prices);
+          const pricesArray = product.prices;
           const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
             const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
             // console.log(sizeInfo);
               return {
-                  ...price,
+                  ...price._doc,
                   sizeName: sizeInfo ? sizeInfo.size : null,
               };
           }));
@@ -287,12 +289,12 @@ const getProductByCategory = async (req, res) => {
           const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
           const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-            const pricesArray = JSON.parse(product.prices);
+            const pricesArray = product.prices;
             const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
               const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
               // console.log(sizeInfo);
                 return {
-                    ...price,
+                    ...price._doc,
                     sizeName: sizeInfo ? sizeInfo.size : null,
                 };
             }));

@@ -11,11 +11,23 @@ const products = new mongoose.Schema({
         required: true,
         maxLength: 255,
     },
-    prices: {
-        type: String,
-        required: true,
-        maxLength: 255,
-    },
+    prices: [{
+        sizeId:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Size',
+            required: true,
+        },
+        price:{
+            type: String,
+            required: true,
+            maxLength: 255,
+        },
+        promoPrice:{
+            type: String,
+            required: false,
+            maxLength: 255,
+        },
+    }],
     brandId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Brand',
