@@ -8,12 +8,12 @@ const customers = new mongoose.Schema(
             maxLength:255,
         },
         email: {
-            type:String,
+            type:String, trim: true , unique:true,
             required:true,
             maxLength:255,
         },
         username: {
-            type:String,
+            type:String, trim: true , unique:true,
             required:true,
             maxLength:255,
         },
@@ -28,7 +28,7 @@ const customers = new mongoose.Schema(
             maxLength:50,
         },
         mobile: {
-            type:String,
+            type:String, trim: true , unique:true,
             required:true,
             maxLength:50,
         },
