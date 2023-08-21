@@ -9,6 +9,7 @@ const productController = require('../controllers/productController');
 const discountController = require('../controllers/discountController');
 const customerController = require('../controllers/customerController');
 const cartController =require('../controllers/cartController');
+const customerAddressController = require('../controllers/customerAddressController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -75,6 +76,14 @@ router.delete('/delete-discount/:id', auth, isAdmin, discountController.deleteDi
 router.post("/add-to-cart",  customerAuth, cartController.addToCart);
 router.post("/remove-item-from-cart",  customerAuth, cartController.removeFromCart);
 router.get("/get-cart",  customerAuth, cartController.getCartDetails);
+
+//Customer Address Route//
+router.post("/add-address",  customerAuth, customerAddressController.addAddress);
+router.put("/update-address/:id",  customerAuth, customerAddressController.updateAddress);
+router.get("/get-address",  customerAuth, customerAddressController.getAddresses);
+router.get("/get-address-by-id/:id",  customerAuth, customerAddressController.getAddressById);
+router.delete("/delete-address/:id",  customerAuth, customerAddressController.deleteAddress);
+
 
 
 module.exports = router;

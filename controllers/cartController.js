@@ -99,7 +99,8 @@ const removeFromCart = async (req, res) => {
             item.quantity--;
     
             // Update the price accordingly
-            item.price = (parseFloat(item.price) / 2).toString();
+            item.price = ((parseFloat(item.price) / (item.quantity + 1))* item.quantity).toString();
+           
         } else {
             // If the quantity is 1, remove the item from the array and decrease the total price
             cart.cartDetails = cart.cartDetails.filter(item => item._id.toString() !== itemId);
