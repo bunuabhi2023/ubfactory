@@ -74,6 +74,7 @@ router.delete('/delete-discount/:id', auth, isAdmin, discountController.deleteDi
 //Cart Route//
 router.post("/add-to-cart",  customerAuth, cartController.addToCart);
 router.post("/remove-item-from-cart",  customerAuth, cartController.removeFromCart);
+router.get("/get-cart",  customerAuth, cartController.getCartDetails);
 
 
 module.exports = router;

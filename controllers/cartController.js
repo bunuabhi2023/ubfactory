@@ -1,5 +1,6 @@
 const Cart = require('../models/cart');
 const Product = require('../models/product');
+const Size = require('../models/size');
 
 const addToCart = async (req,res) =>{
     const { productId, sizeId,quantity} = req.body;
@@ -70,53 +71,86 @@ const addToCart = async (req,res) =>{
 }
 
 const removeFromCart = async (req, res) => {
-    const { productId, sizeId } = req.params;
-    const authenticatedUser = req.customer;
-    const customerId = authenticatedUser._id;
-
     try {
-        // Check if the customer's cart exists
+        const itemId  = req.body.itemId;
+        console.log(itemId);
+        
+        const authenticatedUser = req.customer;
+        const customerId = authenticatedUser._id;
+    
+        // Find the cart by ID
         let cart = await Cart.findOne({ customerId });
+    
         if (!cart) {
-            return res.status(404).json({ success: false, message: "Cart not found" });
+          return res.status(404).json({ message: 'Cart not found' });
         }
-
-        console.log("Cart:", cart); // Log the cart object for inspection
-        // const cartD = cart._doc.cartDetails;
-        // const d = cartD._doc;
-        // console.log(d);
-        // Find the index of the product with the given productId and sizeId in the cartDetails array
-        const itemIndex = cart._doc.cartDetails.findIndex(
-            (item) =>
-                item && // Check if item exists
-                item.productId && // Check if productId property exists
-                item.productId.toString() === productId.toString() && 
-                item.sizeId && // Check if sizeId property exists
-                item.sizeId.toString() === sizeId.toString()
-        );
-
-        console.log("itemIndex:", itemIndex);
-
-        if (itemIndex === -1) {
-            return res.status(404).json({ success: false, message: "Item not found in the cart" });
+    
+        // Find the item in the cartDetails array
+        const item = cart.cartDetails.find(item => item._id.toString() === itemId);
+    console.log(item);
+        if (!item) {
+          return res.status(404).json({ message: 'Item not found in cart' });
         }
+    
+       
 
-        // Remove the item from the cartDetails array and update the cartCount
-        const removedItem = cart.cartDetails.splice(itemIndex, 1)[0];
-        cart.cartCount -= removedItem.quantity;
-
-        // Update the cart in the database
+        // Decrease the quantity of the item
+        if (item.quantity > 1) {
+            item.quantity--;
+    
+            // Update the price accordingly
+            item.price = (parseFloat(item.price) / 2).toString();
+        } else {
+            // If the quantity is 1, remove the item from the array and decrease the total price
+            cart.cartDetails = cart.cartDetails.filter(item => item._id.toString() !== itemId);
+        }
+    
+        // Save the updated cart
         await cart.save();
-
-        return res.status(200).json({ success: true, message: "Item removed from cart successfully" });
-    } catch (error) {
-        console.error("Error removing item from cart:", error);
-        return res.status(500).json({ success: false, message: "Error removing item from cart" });
-    }
+    
+        res.json({ message: 'item removed from cart' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred' });
+      }
 }
 
+const getCartDetails = async (req, res) => {
+    const authenticatedUser = req.customer;
+    const customerId = authenticatedUser._id;
+    const cart = await Cart.findOne({ customerId })
+      .populate('cartDetails.productId')
+      .populate('cartDetails.sizeId');
+  
+    if (!cart) {
+      return null;
+    }
+  
+    // Calculate total price
+    const totalPrice = cart.cartDetails.reduce((total, item) => {
+      return total + parseFloat(item.price);
+    }, 0);
+  
+    // Map cartDetails to include product image URLs
+    const cartDetailsWithUrls = await Promise.all(cart.cartDetails.map(async (item) => {
+      const product = item.productId;
+      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+      
+      return {
+        productId: product._id,
+        productName: product.name,
+        fileUrl,
+        sizeDetails: item.sizeId, 
+        quantity: item.quantity,
+        price: item.price,
+      };
+    }));
+  
+    return res.status(200).json( { cart: { ...cart._doc, cartDetails: cartDetailsWithUrls }, totalPrice });
+  };
 
 module.exports = {
     addToCart,
     removeFromCart,
+    getCartDetails
   };
