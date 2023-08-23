@@ -66,7 +66,8 @@ const users = new mongoose.Schema(
         },
         role:{
             type:String,
-            enum:["Admin", "Vendor"]
+            enum:["Admin", "Vendor"],
+            default:"Vendor"
         },
         city:{
             type:String,

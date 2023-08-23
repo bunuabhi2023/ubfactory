@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 
 exports.signUp = async (req, res) => {
     try {
-      const { name, email, mobile, password, role } = req.body;
+      const { name, email, mobile, password } = req.body;
   
       // Check if the email or mobile already exists in the database
       const existingUser = await User.findOne({
@@ -52,7 +52,6 @@ exports.signUp = async (req, res) => {
         email,
         mobile,
         password: hashedPassword,
-        role,
         email_otp: null,
         mobile_otp: null,
         dob: null,
