@@ -199,8 +199,8 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    return res.json({ user });
+    const vendorProducts = await VendorProduct.find({ vendorId: req.params.id });
+    return res.json({ user, vendorProducts });
   } catch (error) {
     console.error('Error fetching user:', error);
     return res.status(500).json({ message: 'Something went wrong' });
