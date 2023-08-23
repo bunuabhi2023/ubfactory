@@ -156,13 +156,45 @@ exports.signUp = async (req, res) => {
     }
 }
 
-exports.getUser = async (req, res) => {
+exports.getMyProfile = async (req, res) => {
   try {
     const authenticatedUser = req.user;
 
     const userId = authenticatedUser._id;
 
     const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+
+    const users = await User.find();
+
+    if (!users) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ users });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+
+    const user = await User.findById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -221,4 +253,18 @@ exports.updateUser = async(req,res) =>{
     }
   });
 }
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const deleteUser = await User.findByIdAndDelete(req.params.id);
+    if (!deleteUser) {
+      console.log(`User with ID ${req.params.id} not found`);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to delete User' });
+  }
+};
   
