@@ -22,7 +22,7 @@ router.post("/login-user", userController.login);
 router.get("/my-profile", auth, userController.getMyProfile);//auth
 router.put("/update-user/:id", auth, userController.updateUser);
 router.get("/get-all-users", auth, isAdmin, userController.getUser);
-router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUser);
+router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUserById);
 router.delete("/delete-user/:id", auth, isAdmin, userController.deleteUser);
 
 
