@@ -11,6 +11,11 @@ const vendorProducts = new mongoose.Schema({
         ref: 'Product',
         required: true,
     },
+    sizeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Size',
+        required: true,
+    },
     isAvailable: {
         type: Boolean,
         default: true,

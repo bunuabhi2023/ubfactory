@@ -11,12 +11,13 @@ const assignProductsToVendor = async(req, res)=> {
   
       // Loop through each product in the products array and create a vendorProduct
       for (const productData of products) {
-        const { productId, totalStock } = productData;
+        const { productId, sizeId, totalStock } = productData;
         
         // Create a new VendorProduct document
         const newVendorProduct = new VendorProduct({
           vendorId: vendorId,
           productId: productId,
+          sizeId: sizeId,
           totalStock: totalStock,
         });
   
@@ -44,7 +45,7 @@ const getVendorProducts = async (req, res)=> {
       }
   
       // Retrieve vendor products based on the vendor's userId
-      const vendorProducts = await VendorProduct.find({ vendorId: userId }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).exec();;
+      const vendorProducts = await VendorProduct.find({ vendorId: userId }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).populate('sizeId', 'size').exec();
 
       const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
         const product = vendorProduct.productId;
@@ -62,6 +63,7 @@ const getVendorProducts = async (req, res)=> {
           }));
 
           return {
+             sizeId:vendorProduct.sizeId,
               ...product._doc,
               fileUrl,
               extraFilesUrls,
