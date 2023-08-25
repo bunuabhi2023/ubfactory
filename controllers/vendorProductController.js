@@ -44,7 +44,8 @@ const getVendorProducts = async (req, res)=> {
       }
   
       // Retrieve vendor products based on the vendor's userId
-      const vendorProducts = await VendorProduct.find({ vendorId: userId }).populate('productId');
+      const vendorProducts = await VendorProduct.find({ vendorId: userId }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).exec();;
+
       const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
         const product = vendorProduct.productId;
         const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;

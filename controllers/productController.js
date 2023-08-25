@@ -119,13 +119,26 @@ const updateProduct = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find()
+
+        const filters = {}; 
+
+        if (req.query.categoryId) {
+          filters.categoryId = req.query.categoryId;
+        }
+
+        const sortOptions = {};
+        if (req.query.sort === 'new') {
+            sortOptions.createdAt = -1; 
+          } else if (req.query.sort === 'price-low-to-high') {
+            sortOptions['prices.price'] = 1; 
+        }
+        const products = await Product.find(filters)
         .populate('brandId', 'name')
         .populate('categoryId', 'name')
         .populate('createdBy', 'name')
         .populate('updatedBy', 'name')
+        .sort(sortOptions) // Apply sorting options
         .exec();
-
         const productsWithUrls = await Promise.all(products.map(async (product) => {
             const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
             const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);

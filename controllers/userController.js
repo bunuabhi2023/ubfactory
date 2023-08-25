@@ -181,7 +181,7 @@ exports.getMyProfile = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
 
-    const users = await User.find();
+    const users = await User.find({role: 'Vendor'});
 
     if (!users) {
       return res.status(404).json({ message: 'User not found' });
@@ -202,7 +202,7 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    const vendorProducts = await VendorProduct.find({ vendorId: req.params.id }).populate('productId');
+    const vendorProducts = await VendorProduct.find({ vendorId: req.params.id }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).exec();
 
     const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
       const product = vendorProduct.productId;

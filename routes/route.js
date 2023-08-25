@@ -11,6 +11,7 @@ const customerController = require('../controllers/customerController');
 const cartController =require('../controllers/cartController');
 const customerAddressController = require('../controllers/customerAddressController');
 const vendorProductController = require('../controllers/vendorProductController');
+const subscribedCustomerController = require('../controllers/subscribedCustomerController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -93,6 +94,10 @@ router.get("/get-address",  customerAuth, customerAddressController.getAddresses
 router.get("/get-address-by-id/:id",  customerAuth, customerAddressController.getAddressById);
 router.delete("/delete-address/:id",  customerAuth, customerAddressController.deleteAddress);
 
+// Subscription Route//
+router.post("/add-subscription",  customerAuth, subscribedCustomerController.addSubscription);
+router.post("/pay-now",  customerAuth, subscribedCustomerController.payNow);
+router.post("/verify-payment",  customerAuth, subscribedCustomerController.successPayment);
 
 
 module.exports = router;
