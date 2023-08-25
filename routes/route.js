@@ -12,6 +12,7 @@ const cartController =require('../controllers/cartController');
 const customerAddressController = require('../controllers/customerAddressController');
 const vendorProductController = require('../controllers/vendorProductController');
 const subscribedCustomerController = require('../controllers/subscribedCustomerController');
+const orderController = require('../controllers/orderController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -98,6 +99,12 @@ router.delete("/delete-address/:id",  customerAuth, customerAddressController.de
 router.post("/add-subscription",  customerAuth, subscribedCustomerController.addSubscription);
 router.post("/pay-now",  customerAuth, subscribedCustomerController.payNow);
 router.post("/verify-payment",  customerAuth, subscribedCustomerController.successPayment);
+router.get("/my-subscription",  customerAuth, subscribedCustomerController.getMySubscription);
+router.get("/subscribed-customer", auth, isAdmin, subscribedCustomerController.getSubscribedCustomers);
+
+//Order Routes//
+router.post("/create-order", customerAuth, orderController.createOrder);
+
 
 
 module.exports = router;

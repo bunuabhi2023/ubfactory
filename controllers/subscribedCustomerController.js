@@ -150,9 +150,53 @@ const successPayment = async(req, res) =>{
 
 }
 
+const getMySubscription = async(req, res) =>{
+    const authenticatedUser = req.customer;
+    const customerId = authenticatedUser._id;
+    const currentDate = new Date();
+    try {
+        const subscription = await SubscribedCustomer.find({
+            customerId: customerId,
+            endDate: { $gt: currentDate },
+            isPaid:true,
+        }).populate('planId').exec();
+    
+        if(!subscription){
+            res.status(409).json({  message: "No Plan Found" });
+        }
+    
+        res.status(200).json({ status: "Success",  subscription});
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: "Error", message: error.message }); 
+    }
+}
+
+const getSubscribedCustomers = async(req, res) =>{
+    const currentDate = new Date();
+    try {
+        const subscription = await SubscribedCustomer.find({
+            endDate: { $gt: currentDate },
+            isPaid:true,
+        }).populate('planId').populate('customerId').exec();
+    
+        if(!subscription){
+            res.status(409).json({  message: "No Plan Found" });
+        }
+    
+        res.status(200).json({ status: "Success",  subscription});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: "Error", message: error.message }); 
+    }
+}
+
 module.exports = {
     addSubscription,
     payNow,
     successPayment,
+    getMySubscription,
+    getSubscribedCustomers,
 }
 
