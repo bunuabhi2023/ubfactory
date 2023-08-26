@@ -218,7 +218,6 @@ exports.getUserById = async (req, res) => {
                 sizeName: sizeInfo ? sizeInfo.size : null,
             };
         }));
-
         return {
             sizeId: vendorProduct.sizeId,
             vendorId:vendorProduct.vendorId,
