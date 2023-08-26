@@ -222,6 +222,7 @@ exports.getUserById = async (req, res) => {
         return {
             sizeId: vendorProduct.sizeId,
             vendorId:vendorProduct.vendorId,
+            totalStock: vendorProduct.totalStock,
             ...product._doc,
             fileUrl,
             extraFilesUrls,

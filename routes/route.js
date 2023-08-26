@@ -104,6 +104,9 @@ router.get("/subscribed-customer", auth, isAdmin, subscribedCustomerController.g
 
 //Order Routes//
 router.post("/create-order", customerAuth, orderController.createOrder);
+router.get("/get-my-order", customerAuth, orderController.getMyOrder);
+router.get("/get-order", auth, orderController.getVendorOrder);
+router.get("/get-all-order", auth, isAdmin, orderController.getAllOrderForAdmin);
 
 
 

@@ -13,6 +13,19 @@ const assignProductsToVendor = async(req, res)=> {
       for (const productData of products) {
         const { productId, sizeId, totalStock } = productData;
         
+        // Find existing VendorProduct document
+      const existingVendorProduct = await VendorProduct.findOne({
+        vendorId: vendorId,
+        productId: productId,
+        sizeId: sizeId,
+      });
+
+      if (existingVendorProduct) {
+        // Update existing VendorProduct's totalStock
+        existingVendorProduct.totalStock += totalStock;
+        await existingVendorProduct.save();
+        createdVendorProducts.push(existingVendorProduct);
+      } else {
         // Create a new VendorProduct document
         const newVendorProduct = new VendorProduct({
           vendorId: vendorId,
@@ -20,11 +33,11 @@ const assignProductsToVendor = async(req, res)=> {
           sizeId: sizeId,
           totalStock: totalStock,
         });
-  
-        // Save the document to the database
+
         const savedVendorProduct = await newVendorProduct.save();
         createdVendorProducts.push(savedVendorProduct);
       }
+    }
   
       res.status(201).json({ message: 'Products assigned to vendor successfully', createdVendorProducts });
     } catch (error) {

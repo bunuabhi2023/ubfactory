@@ -27,7 +27,7 @@ const createOrder = async(req, res) =>{
     const customerLatitude = customerAddress.latitude;
     const customerLongitude = customerAddress.longitude;
 
-    const users = await User.find();
+    const users = await User.find({status: "active"}); //need to filter inactive filter
 
     const usersWithDistances = users.map(user => {
         const distance = calculateDistance(customerLatitude, customerLongitude, user.latitude, user.longitude);
@@ -40,8 +40,15 @@ const createOrder = async(req, res) =>{
     let selectedUser = null;
 
     for (const userWithDistance of usersWithDistances) {
+        //need to check for Admin//
         const user = userWithDistance.user;
         const vendorId = user._id;
+        userRole = user.role;
+
+        if(userRole == "Admin"){
+            selectedUser = user;
+            break;
+        }
 
         const hasStock = await Promise.all(cartDetails.map(async cartItem => {
             const productId = cartItem.productId;
@@ -126,14 +133,135 @@ const createOrder = async(req, res) =>{
             {isOrdered: true},
             { new: true }
           );
+
+        // Update totalStock of selectedUser's vendor products
+        if(selectedUser.role == "Vendor"){
+            const selectedUserId = selectedUser._id;
+
+            for (const cartItem of cartDetails) {
+                const productId = cartItem.productId;
+                const sizeId = cartItem.sizeId;
+                const quantity = cartItem.quantity;
+
+                const vendorProduct = await VendorProduct.findOne({
+                vendorId: selectedUserId,
+                productId: productId,
+                sizeId: sizeId,
+                });
+
+                if (vendorProduct) {
+                vendorProduct.totalStock = Math.max(0, vendorProduct.totalStock - quantity);
+                await vendorProduct.save();
+                }
+            }
+        }
     }
-    
     console.log(savedOrder);
     return res.status(200).json({data: savedOrder, message: 'Order Created Successfully' });
  }catch(error){
     console.log(error);
  }
 };
+
+const getMyOrder = async(req, res) =>{
+    const authenticatedUser = req.customer;
+    const customerId = authenticatedUser._id;
+    try {
+        const myOrder = await Order.find({customerId : customerId})
+        .populate('itemDetails.productId')
+        .populate('itemDetails.sizeId')
+        .exec();
+
+        const ordersWithImageUrls = myOrder.map(order => {
+            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
+                const product = item.productId;
+                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+                return {
+                    ...item.toObject(),
+                    fileUrl: fileUrl,          // Add the main image URL to the item
+                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
+                };
+            });
+
+            return {
+                ...order.toObject(),
+                itemDetails: itemDetailsWithImageUrls,
+            };
+        });
+
+        return res.status(200).json(ordersWithImageUrls);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const getVendorOrder = async(req, res) =>{
+    const authenticatedUser = req.user;
+    const userId = authenticatedUser._id;
+    try {
+        const myOrder = await Order.find({userId : userId})
+        .populate('itemDetails.productId')
+        .populate('itemDetails.sizeId')
+        .exec();
+
+        const ordersWithImageUrls = myOrder.map(order => {
+            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
+                const product = item.productId;
+                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+                return {
+                    ...item.toObject(),
+                    fileUrl: fileUrl,          // Add the main image URL to the item
+                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
+                };
+            });
+
+            return {
+                ...order.toObject(),
+                itemDetails: itemDetailsWithImageUrls,
+            };
+        });
+
+        return res.status(200).json(ordersWithImageUrls);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const getAllOrderForAdmin = async(req, res) =>{
+    try {
+        const myOrder = await Order.find()
+        .populate('itemDetails.productId')
+        .populate('itemDetails.sizeId')
+        .exec();
+
+        const ordersWithImageUrls = myOrder.map(order => {
+            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
+                const product = item.productId;
+                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+                return {
+                    ...item.toObject(),
+                    fileUrl: fileUrl,          // Add the main image URL to the item
+                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
+                };
+            });
+
+            return {
+                ...order.toObject(),
+                itemDetails: itemDetailsWithImageUrls,
+            };
+        });
+
+        return res.status(200).json(ordersWithImageUrls);
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const earthRadius = 6371; // Radius of the Earth in kilometers
@@ -167,4 +295,7 @@ function degToRad(degrees) {
 
 module.exports = {
     createOrder,
+    getMyOrder,
+    getVendorOrder,
+    getAllOrderForAdmin,
 }
