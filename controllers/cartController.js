@@ -119,12 +119,12 @@ const removeFromCart = async (req, res) => {
 const getCartDetails = async (req, res) => {
     const authenticatedUser = req.customer;
     const customerId = authenticatedUser._id;
-    const cart = await Cart.findOne({ customerId })
+    const cart = await Cart.findOne({ customerId: customerId})
       .populate('cartDetails.productId')
       .populate('cartDetails.sizeId');
   
     if (!cart) {
-      return null;
+      return res.status(200).json( {date: cart, message:"cart is Empty" });
     }
   
     // Calculate total price
@@ -138,6 +138,7 @@ const getCartDetails = async (req, res) => {
       const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
       
       return {
+        itemId: item._id,
         productId: product._id,
         productName: product.name,
         fileUrl,
