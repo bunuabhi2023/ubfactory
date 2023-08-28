@@ -5,6 +5,8 @@ const User = require('../models/user');
 const VendorProduct = require('../models/vendorProduct');
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const nodemailer = require("nodemailer");
+const pdfkit = require("pdfkit");
 
 const createOrder = async(req, res) =>{
   try{   
@@ -124,6 +126,7 @@ const createOrder = async(req, res) =>{
     });
 
     const savedOrder = await order.save();
+    sendInvoiceEmail(authenticatedUser.email, savedOrder);
     if(savedOrder){
         const updatedCart = await Cart.findOneAndUpdate(
             {
@@ -161,6 +164,63 @@ const createOrder = async(req, res) =>{
  }catch(error){
     console.log(error);
  }
+};
+
+
+
+// Function to send the invoice email
+const sendInvoiceEmail = async (recipientEmail, order) => {
+    const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+      auth: {
+        user: "webienttechenv@gmail.com",
+        pass: "ljxugdpijagtxeda",
+      },
+    });
+  
+    const pdfContent = generatePDFContent(order); // Generate PDF content
+    const pdfBuffer = await generatePDFBuffer(pdfContent); // Generate PDF buffer
+
+    const mailOptions = {
+    from: "your-email@gmail.com", // Use your Gmail address
+    to: recipientEmail,
+    subject: "Invoice for Your Order",
+    text: "Please see the attached invoice for your order.",
+    attachments: [
+        {
+        filename: "invoice.pdf",
+        content: pdfBuffer,
+        },
+    ],
+};
+  
+transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+    console.log("Error sending email:", error);
+    } else {
+    console.log("Email sent:", info.response);
+    }
+});
+};
+
+const generatePDFContent = (order) => {
+    const doc = new pdfkit();
+    doc.text(`Invoice for Order #${order.orderNo}`);
+    doc.text(`Total Price: ${order.totalPrice}`);
+    // Add more details to the PDF content
+    return doc;
+};
+  
+  // Convert PDF content to a buffer
+const generatePDFBuffer = async (pdfContent) => {
+return new Promise((resolve, reject) => {
+    const buffers = [];
+    pdfContent.on("data", (chunk) => buffers.push(chunk));
+    pdfContent.on("end", () => resolve(Buffer.concat(buffers)));
+    pdfContent.on("error", (error) => reject(error));
+    pdfContent.end();
+});
 };
 
 const getMyOrder = async(req, res) =>{
