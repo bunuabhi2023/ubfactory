@@ -360,7 +360,7 @@ const updateOrderStatus = async(req, res) =>{
     
     let orderData;
     if(userRole == "Vendor"){
-        const order = await Order.find(
+        const order = await Order.findOneAndUpdate(
             {userId : userId, _id: _id},
             
             {status: status},
@@ -369,7 +369,7 @@ const updateOrderStatus = async(req, res) =>{
      orderData = order;
     }
     if(userRole == "Admin"){
-        const order = await Order.find(
+        const order = await Order.findOneAndUpdate(
             { _id: _id},
             
             {status: status},

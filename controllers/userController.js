@@ -295,4 +295,22 @@ exports.deleteUser = async (req, res) => {
     return res.status(500).json({ error: 'Failed to delete User' });
   }
 };
+
+exports.updateUserStatus =async(req, res) =>{
+  try {
+    const updateStatus =await User.findOneAndUpdate(
+      {_id:req.body.userId},
+      {status: req.body.status},
+      {new:true}
+    );
+    if (!updateStatus) {
+      console.log(`User with ID ${req.body.UserId} not found`);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ message: 'User Status Updated successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to Update Status' });
+  }
+}
   

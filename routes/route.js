@@ -14,6 +14,7 @@ const vendorProductController = require('../controllers/vendorProductController'
 const subscribedCustomerController = require('../controllers/subscribedCustomerController');
 const orderController = require('../controllers/orderController');
 const storeOrderController = require('../controllers/storeOrderController');
+const requestController = require('../controllers/requestController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -24,6 +25,7 @@ router.post("/register-user", userController.signUp);
 router.post("/login-user", userController.login);
 router.get("/my-profile", auth, userController.getMyProfile);//auth
 router.put("/update-user/:id", auth, userController.updateUser);
+router.put("/update-user-status", auth, isAdmin, userController.updateUserStatus);
 router.get("/get-all-users", auth, isAdmin, userController.getUser);
 router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUserById);
 router.delete("/delete-user/:id", auth, isAdmin, userController.deleteUser);
@@ -111,6 +113,13 @@ router.put("/update-order-status", auth, orderController.updateOrderStatus);
 router.get("/get-all-order", auth, isAdmin, orderController.getAllOrderForAdmin);
 
 router.post("/sale", auth, storeOrderController.sale);
+
+
+//request Routes//
+router.post("/generate-request", auth, requestController.request);
+router.put("/update-request-status", auth, isAdmin, requestController.updateStatus);
+router.get("/get-all-request", auth, isAdmin, requestController.getAllRequestByAdmin);
+router.get("/get-my-request", auth, requestController.getMyRequest);
 
 
 
