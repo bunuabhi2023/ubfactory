@@ -292,10 +292,45 @@ function degToRad(degrees) {
     return degrees * (Math.PI / 180);
 };
 
+const updateOrderStatus = async(req, res) =>{
+    const authenticatedUser = req.user;
+    const userId = authenticatedUser._id;
+    const userRole = authenticatedUser.role;
+    const {_id , status} = req.body;
+    
+    let orderData;
+    if(userRole == "Vendor"){
+        const order = await Order.find(
+            {userId : userId, _id: _id},
+            
+            {status: status},
+            { new: true }
+        );
+     orderData = order;
+    }
+    if(userRole == "Admin"){
+        const order = await Order.find(
+            { _id: _id},
+            
+            {status: status},
+            { new: true }
+        );
+        orderData = order;
+    }
+
+        
+
+    if(!orderData){
+        return res.status(404).json("No record Found"); 
+    }
+
+    return res.status(200).json({orderData, messgae:"Order Status Chnaged"});
+}
 
 module.exports = {
     createOrder,
     getMyOrder,
     getVendorOrder,
     getAllOrderForAdmin,
+    updateOrderStatus,
 }

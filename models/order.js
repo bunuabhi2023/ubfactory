@@ -10,7 +10,17 @@ const orders = new mongoose.Schema(
         customerId:{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Customer',
-            required:true,
+            required:false,
+        },
+        customerName:{
+            type: String,
+            required: false,
+            maxLength: 255,
+        },
+        customerMobile:{
+            type: String,
+            required: false,
+            maxLength: 255,
         },
         userId:{
             type: mongoose.Schema.Types.ObjectId,
@@ -80,7 +90,7 @@ const orders = new mongoose.Schema(
         },
         status:{
             type: String,
-            enum:["pending", "accepted", "packed", "shipped", "delivered", "completed",  "canceled"],
+            enum:["pending", "accepted", "packed", "shipped", "delivered", "completed", "sold",  "canceled"],
             default: "pending"
         },
         isPaid: {

@@ -62,7 +62,6 @@ exports.signUp = async (req, res) => {
         longitude: null,
         mobile_verified_at: null,
         email_verified_at: null,
-        status: null,
         file: null,
         city: null, 
         state: 'active', 

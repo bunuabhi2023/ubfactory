@@ -13,6 +13,7 @@ const customerAddressController = require('../controllers/customerAddressControl
 const vendorProductController = require('../controllers/vendorProductController');
 const subscribedCustomerController = require('../controllers/subscribedCustomerController');
 const orderController = require('../controllers/orderController');
+const storeOrderController = require('../controllers/storeOrderController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -106,7 +107,10 @@ router.get("/subscribed-customer", auth, isAdmin, subscribedCustomerController.g
 router.post("/create-order", customerAuth, orderController.createOrder);
 router.get("/get-my-order", customerAuth, orderController.getMyOrder);
 router.get("/get-order", auth, orderController.getVendorOrder);
+router.put("/update-order-status", auth, orderController.updateOrderStatus);
 router.get("/get-all-order", auth, isAdmin, orderController.getAllOrderForAdmin);
+
+router.post("/sale", auth, storeOrderController.sale);
 
 
 
