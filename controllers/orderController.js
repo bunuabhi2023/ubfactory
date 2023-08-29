@@ -239,6 +239,7 @@ const getMyOrder = async(req, res) =>{
         .populate('itemDetails.sizeId')
         .populate('userId', 'name')
         .populate('customerAddressId')
+        .populate('customerId', 'name')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
@@ -275,6 +276,7 @@ const getVendorOrder = async(req, res) =>{
         .populate('itemDetails.sizeId')
         .populate('userId', 'name')
         .populate('customerAddressId')
+        .populate('customerId', 'name')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
@@ -309,6 +311,7 @@ const getAllOrderForAdmin = async(req, res) =>{
         .populate('itemDetails.sizeId')
         .populate('userId', 'name')
         .populate('customerAddressId')
+        .populate('customerId', 'name')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
