@@ -156,8 +156,15 @@ const createOrder = async(req, res) =>{
                 vendorProduct.totalStock = Math.max(0, vendorProduct.totalStock - quantity);
                 await vendorProduct.save();
                 }
+
+                const product = await product.findOne({_id:productId});
+                if(product){
+                    product.saleCount = Math.max(0, product.saleCount + 1);
+                    await product.save();
+                }
             }
         }
+        
     }
     console.log(savedOrder);
     return res.status(200).json({data: savedOrder, message: 'Order Created Successfully' });
@@ -230,6 +237,8 @@ const getMyOrder = async(req, res) =>{
         const myOrder = await Order.find({customerId : customerId})
         .populate('itemDetails.productId')
         .populate('itemDetails.sizeId')
+        .populate('userId', 'name')
+        .populate('customerAddressId')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
@@ -264,6 +273,8 @@ const getVendorOrder = async(req, res) =>{
         const myOrder = await Order.find({userId : userId})
         .populate('itemDetails.productId')
         .populate('itemDetails.sizeId')
+        .populate('userId', 'name')
+        .populate('customerAddressId')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
@@ -296,6 +307,8 @@ const getAllOrderForAdmin = async(req, res) =>{
         const myOrder = await Order.find()
         .populate('itemDetails.productId')
         .populate('itemDetails.sizeId')
+        .populate('userId', 'name')
+        .populate('customerAddressId')
         .exec();
 
         const ordersWithImageUrls = myOrder.map(order => {
