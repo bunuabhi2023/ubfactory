@@ -62,8 +62,8 @@ const createOrder = async(req, res) =>{
                 productId: productId,
                 sizeId: sizeId,
             });
-
-            const stock = vendorProduct.totalStock;
+            
+            const stock = vendorProduct ? vendorProduct.totalStock : 0; 
             return stock >= quantity;
         }));
 
