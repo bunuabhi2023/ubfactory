@@ -119,7 +119,7 @@ const removeFromCart = async (req, res) => {
 const getCartDetails = async (req, res) => {
     const authenticatedUser = req.customer;
     const customerId = authenticatedUser._id;
-    const cart = await Cart.findOne({ customerId: customerId})
+    const cart = await Cart.findOne({ customerId: customerId, isOrdered:false})
       .populate('cartDetails.productId')
       .populate('cartDetails.sizeId');
   
