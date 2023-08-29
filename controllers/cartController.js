@@ -24,7 +24,7 @@ const addToCart = async (req,res) =>{
     const totalPrice = parseFloat(price) * quantity;
     try {
         // Check if the customer's cart already exists, or create one
-        let cart = await Cart.findOne({ customerId });
+        let cart = await Cart.findOne({ customerId:customerId, isOrdered:false });
         if (!cart) {
         cart = new Cart({
             customerId,
