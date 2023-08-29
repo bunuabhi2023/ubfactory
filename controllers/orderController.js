@@ -3,10 +3,13 @@ const Cart = require('../models/cart');
 const CustomerAddress = require('../models/customerAddress');
 const User = require('../models/user'); 
 const VendorProduct = require('../models/vendorProduct');
+const Product = require('../models/product');
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const nodemailer = require("nodemailer");
 const pdfkit = require("pdfkit");
+const fs = require('fs');
+const path = require('path');
 
 const createOrder = async(req, res) =>{
   try{   
@@ -127,6 +130,17 @@ const createOrder = async(req, res) =>{
 
     const savedOrder = await order.save();
     sendInvoiceEmail(authenticatedUser.email, savedOrder);
+
+    const pdfContent = generatePDFContent(savedOrder); // Generate PDF content
+    const pdfBuffer = await generatePDFBuffer(pdfContent);
+    const pdfFileName = `invoice_${savedOrder.orderNo}.pdf`;
+    const pdfFilePath = path.join(__dirname, '../uploads', pdfFileName);
+
+    fs.writeFileSync(pdfFilePath, pdfBuffer);
+
+    // Update the order with the PDF filename
+    savedOrder.invoice = pdfFileName;
+    await savedOrder.save();
     if(savedOrder){
         const updatedCart = await Cart.findOneAndUpdate(
             {
@@ -157,7 +171,7 @@ const createOrder = async(req, res) =>{
                 await vendorProduct.save();
                 }
 
-                const product = await product.findOne({_id:productId});
+                const product = await Product.findOne({_id:productId});
                 if(product){
                     product.saleCount = Math.max(0, product.saleCount + 1);
                     await product.save();
@@ -200,6 +214,7 @@ const sendInvoiceEmail = async (recipientEmail, order) => {
         content: pdfBuffer,
         },
     ],
+    
 };
   
 transporter.sendMail(mailOptions, (error, info) => {
@@ -254,10 +269,11 @@ const getMyOrder = async(req, res) =>{
                     extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
                 };
             });
-
+            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
             return {
                 ...order.toObject(),
                 itemDetails: itemDetailsWithImageUrls,
+                invoiceUrl:invoiceFileUrl
             };
         });
 
@@ -291,10 +307,11 @@ const getVendorOrder = async(req, res) =>{
                     extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
                 };
             });
-
+            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
             return {
                 ...order.toObject(),
                 itemDetails: itemDetailsWithImageUrls,
+                invoiceUrl:invoiceFileUrl
             };
         });
 
@@ -326,10 +343,11 @@ const getAllOrderForAdmin = async(req, res) =>{
                     extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
                 };
             });
-
+            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
             return {
                 ...order.toObject(),
                 itemDetails: itemDetailsWithImageUrls,
+                invoiceUrl:invoiceFileUrl
             };
         });
 

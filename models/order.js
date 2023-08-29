@@ -106,6 +106,11 @@ const orders = new mongoose.Schema(
             required: false,
             maxLength: 255,
         },
+        invoice:{
+            type: String,
+            required: false,
+            maxLength: 255,
+        },
         createdAt:{
             type:Date,
             required:true,
