@@ -15,6 +15,7 @@ const subscribedCustomerController = require('../controllers/subscribedCustomerC
 const orderController = require('../controllers/orderController');
 const storeOrderController = require('../controllers/storeOrderController');
 const requestController = require('../controllers/requestController');
+const adminDashboardController =require('../controllers/adminDashboardController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -30,6 +31,9 @@ router.get("/get-all-users", auth, isAdmin, userController.getUser);
 router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUserById);
 router.delete("/delete-user/:id", auth, isAdmin, userController.deleteUser);
 
+//Admin Dashboard Route//
+router.get("/get-dashboard-data", auth, isAdmin, adminDashboardController.dashboardData);
+router.get("/get-graph-data", auth, isAdmin, adminDashboardController.getOrdersByTimeRange);
 
 //Customer Route//
 router.post("/register-customer", customerController.signup);
