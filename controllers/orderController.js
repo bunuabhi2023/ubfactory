@@ -16,6 +16,7 @@ const createOrder = async(req, res) =>{
     const orderNo = crypto.randomBytes(8).toString("hex");
     const authenticatedUser = req.customer;
     const customerId = authenticatedUser._id;
+    const customerName = authenticatedUser.name;
     const cart = await Cart.findOne({
         customerId: customerId,
         isOrdered: false,
@@ -114,6 +115,7 @@ const createOrder = async(req, res) =>{
     const order = new Order({
         orderNo,
         customerId,
+        customername: customerName,
         userId : selectedUser._id,
         itemDetails,
         customerAddressId,
