@@ -7,6 +7,11 @@ const jwt = require('jsonwebtoken');
 const { options } = require("../routes/route");
 require("dotenv").config();
 const multer = require('multer');
+const admin = require('firebase-admin'); 
+const serviceAccount = require('../serviceAccount.json');
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -63,8 +68,7 @@ exports.signUp = async (req, res) => {
         mobile_verified_at: null,
         email_verified_at: null,
         file: null,
-        city: null, 
-        state: 'active', 
+        city: null,  
         pincode: null,
         address: null,
       });
@@ -120,7 +124,13 @@ exports.signUp = async (req, res) => {
                                 });
 
                                 
+            const deviceId = await admin.auth().createCustomToken(user._id.toString()); // Assuming _id is the user's unique identifier
 
+            // Store the device token in the user's record
+            user.deviceId = deviceId;
+
+            // Save the updated user record
+            await user.save();
             user = user.toObject();
             user.token = token;
             user.password = undefined;
@@ -131,6 +141,8 @@ exports.signUp = async (req, res) => {
                 sameSite: 'none',
                 secure: true,
             }
+
+            
 
             res.cookie("token", token, options).status(200).json({
                 success:true,

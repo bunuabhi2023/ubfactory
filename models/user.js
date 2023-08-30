@@ -56,7 +56,7 @@ const users = new mongoose.Schema(
         },
         status: {
             type:String,
-            enum:["Inactive", "Active", "Rejected"],
+            enum:["inactive", "active", "rejected"],
             default:"Inactive"
         },
         file: {
@@ -88,6 +88,11 @@ const users = new mongoose.Schema(
             type:String,
             required:false,
             maxLength:255,
+        },
+        deviceId:{
+            type:String,
+            required:false,
+            maxLength:800,
         },
         createdAt:{
             type:Date,

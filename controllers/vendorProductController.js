@@ -76,8 +76,9 @@ const getVendorProducts = async (req, res)=> {
           }));
 
           return {
+            ...product._doc,
              sizeId:vendorProduct.sizeId,
-              ...product._doc,
+             totalStock: vendorProduct.totalStock,
               fileUrl,
               extraFilesUrls,
               prices: pricesWithSizeNames,
