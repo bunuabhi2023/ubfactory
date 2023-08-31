@@ -356,6 +356,48 @@ const getAllOrderForAdmin = async(req, res) =>{
     }
 }
 
+const getOrderById = async (req, res) => {
+    const orderId = req.params.orderId;
+
+    try {
+        const order = await Order.findById(orderId)
+            .populate('itemDetails.productId')
+            .populate('itemDetails.sizeId')
+            .populate('userId', 'name')
+            .populate('customerAddressId')
+            .exec();
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        const itemDetailsWithImageUrls = order.itemDetails.map(item => {
+            const product = item.productId;
+            const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
+            const extraFilesUrls = product.extraFiles.map(extraFile => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+
+            return {
+                ...item.toObject(),
+                fileUrl: fileUrl,
+                extraFilesUrls: extraFilesUrls
+            };
+        });
+
+        const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
+
+        const orderWithImageUrls = {
+            ...order.toObject(),
+            itemDetails: itemDetailsWithImageUrls,
+            invoiceUrl: invoiceFileUrl
+        };
+
+        return res.status(200).json(orderWithImageUrls);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
+};
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const earthRadius = 6371; // Radius of the Earth in kilometers
 
@@ -426,4 +468,5 @@ module.exports = {
     getVendorOrder,
     getAllOrderForAdmin,
     updateOrderStatus,
+    getOrderById
 }

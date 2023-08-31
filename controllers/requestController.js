@@ -1,5 +1,9 @@
 const Request = require('../models/request');
 const VendorProduct =require('../models/vendorProduct');
+const axios = require('axios');
+const User =require('../models/user');
+const Product = require('../models/product');
+const Size = require('../models/size');
 
 const request = async(req, res) =>{
     const {productId, sizeId, quantity} = req.body;
@@ -14,7 +18,36 @@ const request = async(req, res) =>{
     })
 
     const savedRequest = await request.save();
- return res.status(200).json({message:"Request Sent Successfully"})
+    const user = await User.findOne({role:'Admin'});
+    const product = await Product.findById(productId);
+    const size = await Size.findById(sizeId);
+    const vendorUser =await User.findById(userId);
+    const token = user.deviceId;
+    const mobile = user.mobile;
+    const productName = product.name;
+    const sizeName = size.size;
+    const vendorName = vendorUser.name;
+    const title = `New Request: ${productName} (${quantity} items)`;
+    const body = `A new request has been made for ${productName} of size ${sizeName} by ${vendorName}.`;
+
+    const requestData = {
+        token: token,
+        title: title,
+        body: body,
+        mobile: mobile,
+    };
+
+    try {
+        // Make a POST request to the external API
+        const response = await axios.post('http://127.0.0.1:3000/send-notification', requestData);
+
+        console.log('External API response:', response.data);
+
+        return res.status(200).json({ message: 'Request Sent Successfully' });
+    } catch (error) {
+        console.error('Error sending notification:', error.message);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
 }
 
 const getAllRequestByAdmin =async(req, res) =>{
