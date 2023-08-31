@@ -1,4 +1,5 @@
 const Order = require('../models/order');
+const Product =require('../models/product');
 const VendorProduct = require('../models/vendorProduct');
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -71,6 +72,12 @@ const sale = async(req, res) =>{
                 if (vendorProduct) {
                 vendorProduct.totalStock = Math.max(0, vendorProduct.totalStock - quantity);
                 await vendorProduct.save();
+                }
+
+                const product = await Product.findOne({_id:productId});
+                if(product){
+                    product.saleCount = Math.max(0, product.saleCount + 1);
+                    await product.save();
                 }
             }
         }

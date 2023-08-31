@@ -16,6 +16,7 @@ const orderController = require('../controllers/orderController');
 const storeOrderController = require('../controllers/storeOrderController');
 const requestController = require('../controllers/requestController');
 const adminDashboardController =require('../controllers/adminDashboardController');
+const vendorDashboardController =require('../controllers/vendorDashboardController');
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -34,6 +35,9 @@ router.delete("/delete-user/:id", auth, isAdmin, userController.deleteUser);
 //Admin Dashboard Route//
 router.get("/get-dashboard-data", auth, isAdmin, adminDashboardController.dashboardData);
 router.get("/get-graph-data", auth, isAdmin, adminDashboardController.getOrdersByTimeRange);
+
+//Vendor Dashboard Route//
+router.get("/get-vendor-dashboard-data", auth, isVendor, vendorDashboardController.vendorDashboardData);
 
 //Customer Route//
 router.post("/register-customer", customerController.signup);
