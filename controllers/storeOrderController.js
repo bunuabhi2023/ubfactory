@@ -1,6 +1,10 @@
 const Order = require('../models/order');
 const VendorProduct = require('../models/vendorProduct');
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const pdfkit = require("pdfkit");
+const fs = require('fs');
+const path = require('path');
 
 const sale = async(req, res) =>{
     const orderNo = crypto.randomBytes(8).toString("hex");
@@ -36,6 +40,18 @@ const sale = async(req, res) =>{
     });
 
     const savedOrder = await order.save();
+
+    
+    const pdfContent = generatePDFContent(savedOrder); // Generate PDF content
+    const pdfBuffer = await generatePDFBuffer(pdfContent);
+    const pdfFileName = `invoice_${savedOrder.orderNo}.pdf`;
+    const pdfFilePath = path.join(__dirname, '../uploads', pdfFileName);
+
+    fs.writeFileSync(pdfFilePath, pdfBuffer);
+
+    // Update the order with the PDF filename
+    savedOrder.invoice = pdfFileName;
+    await savedOrder.save();
     if(savedOrder){
 
         // Update totalStock of selectedUser's vendor products
@@ -62,6 +78,25 @@ const sale = async(req, res) =>{
     console.log(savedOrder);
     return res.status(200).json({data: savedOrder, message: 'Order Created Successfully' });
 }
+
+const generatePDFContent = (order) => {
+    const doc = new pdfkit();
+    doc.text(`Invoice for Order #${order.orderNo}`);
+    doc.text(`Total Price: ${order.totalPrice}`);
+    // Add more details to the PDF content
+    return doc;
+};
+  
+  // Convert PDF content to a buffer
+const generatePDFBuffer = async (pdfContent) => {
+return new Promise((resolve, reject) => {
+    const buffers = [];
+    pdfContent.on("data", (chunk) => buffers.push(chunk));
+    pdfContent.on("end", () => resolve(Buffer.concat(buffers)));
+    pdfContent.on("error", (error) => reject(error));
+    pdfContent.end();
+});
+};
 
 module.exports = {
     sale,
