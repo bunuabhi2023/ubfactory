@@ -17,6 +17,8 @@ const storeOrderController = require('../controllers/storeOrderController');
 const requestController = require('../controllers/requestController');
 const adminDashboardController =require('../controllers/adminDashboardController');
 const vendorDashboardController =require('../controllers/vendorDashboardController');
+const promoCodeController =require('../controllers/promoCodeController');
+
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
@@ -85,6 +87,7 @@ router.delete('/delete-product/:id', auth, isAdmin, productController.deleteProd
 //Vendor Product Route//
 router.post("/product-assign-to-vendor", auth, isAdmin, vendorProductController.assignProductsToVendor);
 router.get("/get-product-vendor", auth, isVendor, vendorProductController.getVendorProducts);
+router.get("/get-less-stock", auth, isVendor, vendorProductController.getLessStock);
 
 
 //Discount Route//
@@ -129,6 +132,13 @@ router.post("/generate-request", auth, requestController.request);
 router.put("/update-request-status", auth, isAdmin, requestController.updateStatus);
 router.get("/get-all-request", auth, isAdmin, requestController.getAllRequestByAdmin);
 router.get("/get-my-request", auth, requestController.getMyRequest);
+
+//promo code Routes//
+router.post("/create-promo-code", auth, isAdmin, promoCodeController.createPromoCode);
+router.put("/update-promo-code/:id", auth, isAdmin, promoCodeController.updatePromoCode);
+router.get("/get-all-promo-code",  promoCodeController.getAllPromoCodes);
+router.get("/get-promo-code-by-id/:id",  promoCodeController.getPromoCodeById);
+router.delete("/delete-promo-code/:id", auth, isAdmin,  promoCodeController.deletePromoCode);
 
 
 
