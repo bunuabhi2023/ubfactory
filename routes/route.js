@@ -18,6 +18,7 @@ const requestController = require('../controllers/requestController');
 const adminDashboardController =require('../controllers/adminDashboardController');
 const vendorDashboardController =require('../controllers/vendorDashboardController');
 const promoCodeController =require('../controllers/promoCodeController');
+const advertisementController = require('../controllers/advertisementController')
 
 
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
@@ -138,6 +139,14 @@ router.put("/update-promo-code/:id", auth, isAdmin, promoCodeController.updatePr
 router.get("/get-all-promo-code",  promoCodeController.getAllPromoCodes);
 router.get("/get-promo-code-by-id/:id",  promoCodeController.getPromoCodeById);
 router.delete("/delete-promo-code/:id", auth, isAdmin,  promoCodeController.deletePromoCode);
+
+
+//Advertisement  Route//
+router.post("/create-advertisement", auth, isAdmin,advertisementController.createAdvertisement);
+router.put("/update-advertisement/:id", auth, isAdmin, advertisementController.updateAdvertisement);
+router.get("/get-advertisement",  advertisementController.getAllAdvertisement);
+router.get("/get-advertisement-by-id/:id",  advertisementController.getAdvertisementById);
+router.delete('/delete-advertisement/:id', auth, isAdmin, advertisementController.deleteAdvertisement);
 
 
 
