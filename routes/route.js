@@ -24,7 +24,10 @@ const advertisementController = require('../controllers/advertisementController'
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
 const {customerAuth} = require('../middlewares/CustomerAuth');
-
+// Home 
+router.get("/", (req, res) =>{
+    res.send("Welcome to UB Factory Backend");
+});
 //Admin Route//
 router.post("/register-user", userController.signUp);
 router.post("/login-user", userController.login);
