@@ -1,7 +1,7 @@
 const Customer = require ('../models/customer');
 const Product = require('../models/product');
 const Size = require('../models/size');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { options } = require("../routes/route");
 require("dotenv").config();

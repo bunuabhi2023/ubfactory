@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
+const sls = require("serverless-http");
 
 const cors = require('cors');
 app.use('/uploads', express.static('uploads'));
@@ -28,6 +29,8 @@ const route = require("./routes/route");
 
 //mount the todo API routes
 app.use("/api/v1", route);
+
+module.exports.handler = sls(app);
 
 //start serve
 app.listen(PORT, () =>{
