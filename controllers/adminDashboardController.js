@@ -96,6 +96,86 @@ const dashboardData = async (req, res) => {
     }
 };
 
+// Function to get the week name from a date
+function getWeekName(date) {
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayIndex = date.getDay();
+    return weekdays[dayIndex];
+}
+
+const getCurrentWeekOrderCount = async () => {
+    try {
+        // Calculate the start and end dates for the current week starting from Monday
+        const today = new Date();
+        const currentDayIndex = today.getDay();
+        const daysUntilMonday = (currentDayIndex === 0 ? 6 : currentDayIndex - 1); // Calculate days to subtract for Monday
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - daysUntilMonday); // Go back to the previous Monday
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6); // End on Sunday of the current week
+
+        const dailyOrderCounts = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(startDate), // Start date (Monday)
+                        $lte: new Date(endDate), // End date (Sunday)
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $sort: { '_id.date': 1 }, // Sort by date in ascending order
+            },
+        ]);
+
+        // Create an object to store the counts for each day of the week
+        const weekCounts = {};
+
+        // Initialize counts for each day to 0
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            weekCounts[date.toISOString().split('T')[0]] = { date: date.toISOString().split('T')[0], day: getWeekName(date), totalOrder: 0 };
+        }
+
+        // Fill in the counts from the aggregation result
+        dailyOrderCounts.forEach(item => {
+            const date = item._id.date;
+            weekCounts[date].totalOrder = item.count;
+        });
+
+        // Convert the weekCounts object to an array of values
+        const weekCountsArray = Object.values(weekCounts);
+
+        return weekCountsArray;
+    } catch (error) {
+        throw error;
+    }
+};
+
+const currentWeekOrderData = async (req, res) => {
+    try {
+        // Get the current week-wise order counts starting from Monday
+        const weekCounts = await getCurrentWeekOrderCount();
+
+        res.json({
+            weeklyOrderCounts: weekCounts,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred' });
+    }
+};
+
+
 module.exports = {
     dashboardData,
+    currentWeekOrderData
 }
