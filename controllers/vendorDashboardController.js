@@ -18,7 +18,7 @@ const vendorDashboardData =  async(req, res) =>{
         });
 
         const totalRevenue = totalSaleInMonth.reduce(
-            (total, order) => total + order.totalPrice,
+            (total, order) => total + parseFloat(order.totalPrice), // Use parseFloat to convert string to number
             0
         );
 
