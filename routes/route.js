@@ -24,6 +24,7 @@ const advertisementController = require('../controllers/advertisementController'
 const {auth, isAdmin, isVendor}  = require('../middlewares/Auth');
 
 const {customerAuth} = require('../middlewares/CustomerAuth');
+const { imageSingleUpload } = require("../middlewares/multer");
 // Home 
 router.get("/", (req, res) =>{
     res.send("Welcome to UB Factory Backend");
@@ -58,8 +59,8 @@ router.post("/remove-from-wishlist",  customerAuth, customerController.removeFro
 router.post('/update-customer/:id', auth, isAdmin, customerController.updateCustomer);
 
 //Category Route//
-router.post("/create-category", auth, isAdmin, categoryController.createCategory);
-router.put('/update-category/:id', auth, isAdmin,  categoryController.updateCategory);
+router.post("/create-category",imageSingleUpload, auth, isAdmin, categoryController.createCategory);
+router.put('/update-category/:id', imageSingleUpload,auth, isAdmin,  categoryController.updateCategory);
 router.get("/get-category",  categoryController.getAllCategories);
 router.get('/get-category-by-id/:id', categoryController.getCategoryById);
 router.delete('/delete-category/:id', auth, isAdmin, categoryController.deleteCategory);

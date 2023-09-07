@@ -102,8 +102,9 @@ const createOrder = async(req, res) =>{
     if(dist > 10){
         deliveryCharge = 40;
     };
-
-    const totalPrice =  cartPrice + deliveryCharge;
+    const gst = "18";
+    const totalgst = cartPrice * (parseInt(gst))/100;
+    const totalPrice =  cartPrice + totalgst + deliveryCharge;
     console.log(selectedUser._id);
     const itemDetails = cartDetails.map(cartItem => ({
         productId: cartItem.productId,
@@ -120,7 +121,7 @@ const createOrder = async(req, res) =>{
         itemDetails,
         customerAddressId,
         cartPrice,
-        gst: " ",
+        gst,
         deliveryCharge,
         discount: "", 
         totalPrice,
