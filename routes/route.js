@@ -148,6 +148,7 @@ router.delete("/delete-promo-code/:id", auth, isAdmin,  promoCodeController.dele
 //Advertisement  Route//
 router.post("/create-advertisement", auth, isAdmin,advertisementController.createAdvertisement);
 router.put("/update-advertisement/:id", auth, isAdmin, advertisementController.updateAdvertisement);
+router.put("/update-advertisement-status/:id", auth, isAdmin, advertisementController.changeStatus);
 router.get("/get-advertisement",  advertisementController.getAllAdvertisement);
 router.get("/get-advertisement-by-id/:id",  advertisementController.getAdvertisementById);
 router.delete('/delete-advertisement/:id', auth, isAdmin, advertisementController.deleteAdvertisement);

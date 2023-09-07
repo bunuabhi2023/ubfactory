@@ -151,10 +151,30 @@ const deleteAdvertisement = async (req, res) => {
   }
 };
 
+const changeStatus = async(req, res) => {
+  try {
+    const id = req.params.id;
+    const unpateStatus = await Advertisement.findByIdAndUpdate(
+      {_id:id}, 
+      {status:req.body.status},
+      {new:true}
+      );
+
+    if(!unpateStatus){
+      return res.status(404).json({error:"Advertisement Not Found"});
+    }
+
+    return res.status(200).json({message:"Advertisement Status Changed"});
+  } catch (error) {
+    return res.status(500).json({error:"Failed To Change Advertisement Status"});
+  }
+}
+
 module.exports = {
     createAdvertisement,
     updateAdvertisement,
     getAllAdvertisement,
     getAdvertisementById,
-    deleteAdvertisement
+    deleteAdvertisement,
+    changeStatus
   };
