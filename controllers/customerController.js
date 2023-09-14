@@ -164,10 +164,10 @@ exports.getMyProfile = async (req, res) => {
         return res.status(404).json({ message: 'customer not found' });
       }
 
-      const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
-    const customerWithUrl = { ...customer._doc, imageUrl };
+    //   const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
+    // const customerWithUrl = { ...customer._doc, imageUrl };
   
-      return res.json({ customerWithUrl });
+      return res.json({ customer });
     } catch (error) {
       console.error('Error fetching user:', error);
       return res.status(500).json({ message: 'Something went wrong' });
@@ -175,17 +175,11 @@ exports.getMyProfile = async (req, res) => {
 };
 
 exports.updateMyProfile = async(req, res) =>{
-        upload(req, res, async (err) => {
-        if (err instanceof multer.MulterError) {
-          return res.status(400).json({ error: 'Error uploading image' });
-        } else if (err) {
-          return res.status(500).json({ error: 'Server error' });
-        }
-    
+        
         const { name, email, mobile, dob, username } = req.body;
         const updatedBy = req.customer.id;
     
-        const file = req.file ? req.file.filename : undefined;
+        const file = req.s3FileUrl ;
     
         try {
           const existingCustomer = await Customer.findById(req.params.id);
@@ -218,18 +212,14 @@ exports.updateMyProfile = async(req, res) =>{
           console.error(error); // Add this line for debug logging
           return res.status(500).json({ error: 'Failed to update Customer' });
         }
-      });
 }
 
 
 exports.getAllCustomers = async (req, res)  => {
     try {
         const customers = await Customer.find().select('-password');
-        const customersWithUrls = customers.map((customer) => {
-        const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
-        return { ...customer._doc, imageUrl };
-        });
-        res.json(customersWithUrls);
+        
+        res.json(customers);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Failed to fetch customers' });
@@ -246,10 +236,10 @@ exports.getCustomerById = async (req, res) => {
       }
 
     
-      const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
-      const customerWithUrl = { ...customer._doc, imageUrl };
+      // const imageUrl = customer.file ? `${req.protocol}://${req.get('host')}/uploads/${customer.file}` : null;
+      // const customerWithUrl = { ...customer._doc, imageUrl };
 
-      res.json(customerWithUrl);
+      res.json(customer);
   } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Failed to fetch customer' });
@@ -257,17 +247,11 @@ exports.getCustomerById = async (req, res) => {
 };
 
 exports.updateCustomer = async(req,res) =>{
-  upload(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: 'Error uploading image' });
-    } else if (err) {
-      return res.status(500).json({ error: 'Server error' });
-    }
 
     const { name, email, mobile, dob, username } = req.body;
     const updatedBy = req.user.id;
 
-    const file = req.file ? req.file.filename : undefined;
+    const file = req.s3FileUrl;
 
     try {
       const existingCustomer = await Customer.findById(req.params.id);
@@ -300,7 +284,6 @@ exports.updateCustomer = async(req,res) =>{
       console.error(error); // Add this line for debug logging
       return res.status(500).json({ error: 'Failed to update Customer' });
     }
-  });
 }
 
 exports.getMyWishlist = async(req, res) =>{

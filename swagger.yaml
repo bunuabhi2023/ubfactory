@@ -1,0 +1,346 @@
+swagger: "2.0"
+info:
+  title: User Authentication and Management API
+  description: API for user authentication and management
+  version: 1.0
+basePath: /api
+schemes:
+  - https
+paths:
+  /register-user:
+    post:
+      summary: Register a new user
+      tags:
+        - User
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              mobile:
+                type: string
+              password:
+                type: string
+            example:
+              name: John Doe
+              email: john@example.com
+              mobile: +1234567890
+              password: secret
+      responses:
+        201:
+          description: User created successfully
+        400:
+          description: Email or mobile already exists
+        500:
+          description: Something went wrong
+
+  /login-user:
+    post:
+      summary: Log in a user
+      tags:
+        - User
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+            example:
+              email: john@example.com
+              password: secret
+      responses:
+        200:
+          description: User logged in successfully
+        400:
+          description: Please fill all the details carefully
+        401:
+          description: User is not registered
+        403:
+          description: Password Incorrect
+        500:
+          description: Login Failure
+
+  /my-profile:
+    get:
+      summary: Get the user's own profile
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: User profile retrieved successfully
+        404:
+          description: User not found
+        500:
+          description: Something went wrong
+
+  /update-user/{id}:
+    put:
+      summary: Update user profile by ID
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: formData
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              mobile:
+                type: string
+              dob:
+                type: string
+              city:
+                type: string
+              state:
+                type: string
+              pincode:
+                type: string
+              address:
+                type: string
+              status:
+                type: string
+              file:
+                type: file
+            example:
+              name: Updated Name
+              email: updated@example.com
+              mobile: +9876543210
+              dob: 1990-01-01
+              city: New City
+              state: New State
+              pincode: 12345
+              address: Updated Address
+              status: active
+              file: (binary data)
+      responses:
+        200:
+          description: User profile updated successfully
+        400:
+          description: Email or mobile already exists for another user
+        404:
+          description: User not found
+        500:
+          description: Failed to update User
+
+  /delete-user/{id}:
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: User deleted successfully
+        404:
+          description: User not found
+        500:
+          description: Failed to delete User
+
+  /update-user-status:
+    put:
+      summary: Update user status
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              userId:
+                type: string
+              status:
+                type: string
+            example:
+              userId: 1234567890
+              status: active
+      responses:
+        200:
+          description: User Status Updated successfully
+        404:
+          description: User not found
+        500:
+          description: Failed to Update Status
+
+  /get-all-users:
+    get:
+      summary: Get all users (Admin only)
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Users retrieved successfully
+        500:
+          description: Something went wrong
+
+  /get-user-by-id/{id}:
+    get:
+      summary: Get user by ID (Admin only)
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: User retrieved successfully
+        404:
+          description: User not found
+        500:
+          description: Something went wrong
+
+  /register-customer:
+    post:
+      summary: Register a new customer
+      tags:
+        - Customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                mobile:
+                  type: string
+                password:
+                  type: string
+                username:
+                  type: string
+      responses:
+        '201':
+          description: Customer created successfully
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /login-customer:
+    post:
+      summary: Log in as a customer
+      tags:
+        - Customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Customer logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  customer:
+                    type: object
+        '401':
+          description: Customer not registered
+        '400':
+          description: Bad request
+        '403':
+          description: Password incorrect
+        '500':
+          description: Internal server error
+
+  /get-my-profile:
+    get:
+      summary: Get customer's profile
+      tags:
+        - Customer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customer profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer:
+                    type: object
+        '404':
+          description: Customer not found
+        '500':
+          description: Internal server error
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header

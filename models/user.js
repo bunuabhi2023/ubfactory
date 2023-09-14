@@ -57,7 +57,7 @@ const users = new mongoose.Schema(
         status: {
             type:String,
             enum:["inactive", "active", "rejected"],
-            default:"Inactive"
+            default:"inactive"
         },
         file: {
             type:String,

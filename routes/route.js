@@ -50,13 +50,13 @@ router.get("/get-vendor-dashboard-data", auth, isVendor, vendorDashboardControll
 router.post("/register-customer", customerController.signup);
 router.post("/login-customer", customerController.login);
 router.get("/get-my-profile", customerAuth, customerController.getMyProfile);
-router.put("/update-my-profile/:id", customerAuth, customerController.updateMyProfile);
+router.put("/update-my-profile/:id",imageSingleUpload, customerAuth, customerController.updateMyProfile);
 router.get("/get-customer",  auth, isAdmin, customerController.getAllCustomers);
 router.get('/get-customer-by-id/:id', auth, isAdmin, customerController.getCustomerById);
 router.get("/get-my-wishlist",  customerAuth, customerController.getMyWishlist);
 router.post("/add-to-wishlist",  customerAuth, customerController.addToWishList);
 router.post("/remove-from-wishlist",  customerAuth, customerController.removeFromWishList);
-router.post('/update-customer/:id', auth, isAdmin, customerController.updateCustomer);
+router.post('/update-customer/:id', imageSingleUpload, auth, isAdmin, customerController.updateCustomer);
 
 //Category Route//
 router.post("/create-category",imageSingleUpload, auth, isAdmin, categoryController.createCategory);
@@ -73,8 +73,8 @@ router.get('/get-size-by-id/:id', sizeController.getSizeById);
 router.delete('/delete-size/:id', auth, sizeController.deleteSize);
 
 //Brand Route//
-router.post("/create-brand", auth, isAdmin, brandController.createBrand);
-router.put('/update-brand/:id', auth, isAdmin, brandController.updateBrand);
+router.post("/create-brand", imageSingleUpload, auth, isAdmin, brandController.createBrand);
+router.put('/update-brand/:id', imageSingleUpload, auth, isAdmin, brandController.updateBrand);
 router.get("/get-brand",  brandController.getAllBrands);
 router.get('/get-brand-by-id/:id', brandController.getBrandById);
 router.delete('/delete-brand/:id', auth, isAdmin, brandController.deleteBrand);

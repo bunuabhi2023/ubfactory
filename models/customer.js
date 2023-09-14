@@ -64,10 +64,22 @@ const customers = new mongoose.Schema(
             required:false,
             default: 'active',
         },
-        file: {
-            type:String,
-            required:false,
-            maxLength:255,
+        file:{
+            Bucket:{
+                type:String,
+                required:false,
+                maxLength:255,
+            },
+            Key:{
+                type:String,
+                required:false,
+                maxLength:255,
+            },
+            Url:{
+                type:String,
+                required:false,
+                maxLength:255,
+            }
         },
         wishList: [{
             type: mongoose.Schema.Types.ObjectId,
