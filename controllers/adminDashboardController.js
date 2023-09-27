@@ -83,18 +83,130 @@ const dashboardData = async (req, res) => {
         
         const subscribedCustomerCount = totalSubscribedCustomers.length > 0 ? totalSubscribedCustomers[0].count : 0;
         
+        // Calculate user growth percentage for the current month
+        const userGrowthPercentage = await calculateUserGrowthPercentage();
 
+        // Calculate revenue growth percentage for the current month
+        const revenueGrowthPercentage = await calculateRevenueGrowthPercentage();
         res.json({
             totalRegisteredCustomer: customer,
             totalSubscription: subscribedCustomerCount,
             totalDeliveredOrder: deliveredOrder,
             totalCanceledOrder: canceledOrder,
             totalRevenue: revenue,
+            revwnueGrowthInAMonth: revenueGrowthPercentage,
+            userGrowthInAMonth: userGrowthPercentage,
         });
     } catch (error) {
         res.status(500).json({ error: 'An error occurred' });
     }
 };
+
+const calculateUserGrowthPercentage = async () => {
+    try {
+        // Calculate the total registered customers for the current month
+        const currentDate = new Date();
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+        const currentMonthCustomerCount = await Customer.countDocuments({
+            createdAt: { $gte: firstDayOfMonth, $lte: currentDate },
+        });
+
+        // Calculate the total registered customers for the previous month
+        const previousMonthEndDate = new Date(firstDayOfMonth);
+        previousMonthEndDate.setDate(firstDayOfMonth.getDate() - 1);
+
+        const previousMonthStartDate = new Date(previousMonthEndDate.getFullYear(), previousMonthEndDate.getMonth(), 1);
+
+        const previousMonthCustomerCount = await Customer.countDocuments({
+            createdAt: { $gte: previousMonthStartDate, $lte: previousMonthEndDate },
+        });
+
+        // Calculate the user growth percentage
+        let userGrowthPercentage = 0;
+
+        if (previousMonthCustomerCount > 0) {
+            userGrowthPercentage = ((currentMonthCustomerCount - previousMonthCustomerCount) / previousMonthCustomerCount) * 100;
+            userGrowthPercentage = Math.max(userGrowthPercentage, 0);  // Ensure non-negative value
+        }
+
+        return userGrowthPercentage;
+    } catch (error) {
+        throw new Error('Error calculating user growth percentage');
+    }
+};
+
+const calculateRevenueGrowthPercentage = async () => {
+    try {
+        // Calculate the total revenue for the current month
+        const currentDate = new Date();
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+        const currentMonthTotalRevenue = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: firstDayOfMonth, $lte: currentDate },
+                    status: { $in: ['delivered', 'sold'] },
+                },
+            },
+            {
+                $addFields: {
+                    totalPriceNumeric: { $toDouble: '$totalPrice' },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$totalPriceNumeric' },
+                },
+            },
+        ]);
+
+        const currentMonthRevenue = currentMonthTotalRevenue.length > 0 ? currentMonthTotalRevenue[0].total : 0;
+
+        // Calculate the total revenue for the previous month
+        const previousMonthEndDate = new Date(firstDayOfMonth);
+        previousMonthEndDate.setDate(firstDayOfMonth.getDate() - 1);
+
+        const previousMonthStartDate = new Date(previousMonthEndDate.getFullYear(), previousMonthEndDate.getMonth(), 1);
+
+        const previousMonthTotalRevenue = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: previousMonthStartDate, $lte: previousMonthEndDate },
+                    status: { $in: ['delivered', 'sold'] },
+                },
+            },
+            {
+                $addFields: {
+                    totalPriceNumeric: { $toDouble: '$totalPrice' },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$totalPriceNumeric' },
+                },
+            },
+        ]);
+
+        const previousMonthRevenue = previousMonthTotalRevenue.length > 0 ? previousMonthTotalRevenue[0].total : 0;
+
+        // Calculate the revenue growth percentage
+        let revenueGrowthPercentage;
+        if (previousMonthRevenue === 0) {
+            revenueGrowthPercentage = currentMonthRevenue > 0 ? 100 : 0;
+        } else {
+            revenueGrowthPercentage = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
+            revenueGrowthPercentage = Math.max(revenueGrowthPercentage, 0); // Ensure non-negative value
+        }
+
+        return revenueGrowthPercentage;
+    } catch (error) {
+        throw new Error('Error calculating revenue growth percentage');
+    }
+};
+
 
 // Function to get the week name from a date
 function getWeekName(date) {

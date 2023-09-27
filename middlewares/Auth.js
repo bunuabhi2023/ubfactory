@@ -4,13 +4,23 @@ require("dotenv").config();
 
 exports.auth = async(req, res , next) => {
  
-    const {token} = req.cookies;
-    if(!token) {
-        return res.status(404).json({
+    let token;
+
+    // Check for token in Authorization header
+    const authHeader = req.headers["authorization"];
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+    }
+    if (!token) {
+        token = req.cookies.token;
+    }
+
+    if (!token) {
+        return res.status(401).json({
             success:false,
-            message:'Unauthorized',
-        })
-    };
+            message:'Not logged in',
+      });
+    }
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         
