@@ -128,6 +128,7 @@ router.get("/get-order", auth, orderController.getVendorOrder);
 router.put("/update-order-status", auth, orderController.updateOrderStatus);
 router.get("/get-all-order", auth, isAdmin, orderController.getAllOrderForAdmin);
 router.get("/get-order-by-id/:orderId", auth, orderController.getOrderById);
+router.get('/get-repeated-order-percentage/:customerId', auth, orderController.repeatedOrderPercentage);
 
 router.post("/sale", auth, storeOrderController.sale);
 
