@@ -33,7 +33,7 @@ router.get("/", (req, res) =>{
 router.post("/register-user", userController.signUp);
 router.post("/login-user", userController.login);
 router.get("/my-profile", auth, userController.getMyProfile);//auth
-router.put("/update-user/:id", auth, userController.updateUser);
+router.put("/update-user/:id",imageSingleUpload, auth, userController.updateUser);
 router.put("/update-user-status", auth, isAdmin, userController.updateUserStatus);
 router.get("/get-all-users", auth, isAdmin, userController.getUser);
 router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUserById);

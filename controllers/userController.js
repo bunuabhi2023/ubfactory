@@ -13,29 +13,7 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, './uploads/'); // Set the destination folder for uploaded images
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + '-' + file.originalname); // Set the filename for the uploaded image
-    },
-  });
-  
-  const fileFilter = (req, file, cb) => {
-    // Check file type to allow only images
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed.'), false);
-    }
-  };
-  
-  const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-  }).single('file');
+
 
 exports.signUp = async (req, res) => {
     try {
@@ -215,32 +193,8 @@ exports.getUserById = async (req, res) => {
     }
     const vendorProducts = await VendorProduct.find({ vendorId: req.params.id }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).populate('sizeId', 'size').exec();
 
-    const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
-      const product = vendorProduct.productId;
-      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-      const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-        const pricesArray = product.prices;
-        const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-          const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
-          // console.log(sizeInfo);
-            return {
-                ...price._doc,
-                sizeName: sizeInfo ? sizeInfo.size : null,
-            };
-        }));
-        return {
-          ...product._doc,
-            sizeId: vendorProduct.sizeId,
-            vendorId:vendorProduct.vendorId,
-            totalStock: vendorProduct.totalStock,
-            fileUrl,
-            extraFilesUrls,
-            prices: pricesWithSizeNames,
-        };
-    }));
-
-    return res.json({ user, productsWithUrls });
+    return res.json({ user, vendorProducts });
   } catch (error) {
     console.error('Error fetching user:', error);
     return res.status(500).json({ message: 'Something went wrong' });
@@ -248,17 +202,12 @@ exports.getUserById = async (req, res) => {
 };
 
 exports.updateUser = async(req,res) =>{
-  upload(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: 'Error uploading image' });
-    } else if (err) {
-      return res.status(500).json({ error: 'Server error' });
-    }
+  
 
     const { name, email, mobile, dob, city, state, pincode,address, status} = req.body;
     const updatedBy = req.user.id;
 
-    const file = req.file ? req.file.filename : undefined;
+    const file = req.s3FileUrl;
 
     try {
       const existingUser = await User.findById(req.params.id);
@@ -291,7 +240,6 @@ exports.updateUser = async(req,res) =>{
       console.error(error); // Add this line for debug logging
       return res.status(500).json({ error: 'Failed to update User' });
     }
-  });
 }
 
 exports.deleteUser = async (req, res) => {
