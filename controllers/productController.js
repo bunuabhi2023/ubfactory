@@ -41,32 +41,32 @@ const createProduct = async (req, res) => {
   //     return res.status(500).json({ error: 'Server error' });
   //   }
 
-    const { name, description, categoryId, brandId, totalStock } = req.body;
-    const createdBy = req.user.id;
-    const prices = JSON.parse(req.body.prices);
-    const file = req.s3FileUrl;
-    const extraFiles = [];
+  const { name, description, categoryId, brandId, totalStock } = req.body;
+  const createdBy = req.user.id;
+  const prices = JSON.parse(req.body.prices);
+  const file = req.s3FileUrl;
+  const extraFiles = [];
 
-    const newProduct = new Product({
-      name,
-      description,
-      prices,
-      categoryId,
-      file,
-      createdBy,
-      brandId,
-      extraFiles,
-      totalStock,
-    });
+  const newProduct = new Product({
+    name,
+    description,
+    prices,
+    categoryId,
+    file,
+    createdBy,
+    brandId,
+    extraFiles,
+    totalStock,
+  });
 
-    try {
-      const savedProduct = await newProduct.save();
-      console.log(savedProduct); // Add this line for debug logging
-      res.json(savedProduct);
-    } catch (error) {
-      console.error(error); // Add this line for debug logging
-      return res.status(500).json({ error: 'Failed to create Product' });
-    }
+  try {
+    const savedProduct = await newProduct.save();
+    console.log(savedProduct); // Add this line for debug logging
+    res.json(savedProduct);
+  } catch (error) {
+    console.error(error); // Add this line for debug logging
+    return res.status(500).json({ error: 'Failed to create Product' });
+  }
 };
 
 const updateProduct = async (req, res) => {
@@ -137,30 +137,7 @@ const getAllProducts = async (req, res) => {
       .populate('updatedBy', 'name')
       .sort(sortOptions) // Apply sorting options
       .exec();
-    const productsWithUrls = await Promise.all(products.map(async (product) => {
-      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-      const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
-      const pricesArray = product.prices;
-
-      const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-        const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
-        // console.log(sizeInfo);
-        return {
-          ...price._doc,
-          sizeName: sizeInfo ? sizeInfo.size : null,
-        };
-      }));
-
-      return {
-        ...product._doc,
-        fileUrl,
-        extraFilesUrls,
-        prices: pricesWithSizeNames,
-      };
-    }));
-
-    res.json(productsWithUrls);
+    res.json(products);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to fetch products' });
