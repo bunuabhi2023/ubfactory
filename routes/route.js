@@ -24,7 +24,7 @@ const advertisementController = require('../controllers/advertisementController'
 const { auth, isAdmin, isVendor } = require('../middlewares/Auth');
 
 const { customerAuth } = require('../middlewares/CustomerAuth');
-const { imageSingleUpload } = require("../middlewares/multer");
+const { imageSingleUpload, imageMultiUpload } = require("../middlewares/multer");
 // Home 
 router.get("/", (req, res) => {
     res.send("Welcome to UB Factory Backend");
@@ -33,7 +33,7 @@ router.get("/", (req, res) => {
 router.post("/register-user", userController.signUp);
 router.post("/login-user", userController.login);
 router.get("/my-profile", auth, userController.getMyProfile);//auth
-router.put("/update-user/:id",imageSingleUpload, auth, userController.updateUser);
+router.put("/update-user/:id", imageSingleUpload, auth, userController.updateUser);
 router.put("/update-user-status", auth, isAdmin, userController.updateUserStatus);
 router.get("/get-all-users", auth, isAdmin, userController.getUser);
 router.get("/get-user-by-id/:id", auth, isAdmin, userController.getUserById);
@@ -81,13 +81,14 @@ router.delete('/delete-brand/:id', auth, isAdmin, brandController.deleteBrand);
 
 //Product Route//
 router.post("/create-product", auth, isAdmin, imageSingleUpload, productController.createProduct);
-router.put("/update-product/:id", auth, isAdmin, productController.updateProduct);
+router.put("/update-product/:id", auth, isAdmin, imageSingleUpload, productController.updateProduct);
 router.put("/update-product-availability/:id", auth, productController.updateAvailable);
 router.get("/get-product", productController.getAllProducts);
 router.get("/get-product-by-id/:id", productController.getProductById);
 router.get("/get-product-by-category/:categoryId", productController.getProductByCategory);
 router.get("/get-best-saling-products", productController.getBestSalingProducts);
 router.delete('/delete-product/:id', auth, isAdmin, productController.deleteProduct);
+
 
 //Vendor Product Route//
 router.post("/product-assign-to-vendor", auth, isAdmin, vendorProductController.assignProductsToVendor);

@@ -30,17 +30,6 @@ const upload = multer({
 
 // Function to create a new Product
 const createProduct = async (req, res) => {
-  // upload.fields([
-  //   { name: 'file', maxCount: 1 },
-  //   { name: 'extraFiles', maxCount: 5 },
-  // ])(req, res, async (err) => {
-  //   if (err instanceof multer.MulterError) {
-  //     return res.status(400).json({ error: 'Error uploading files' });
-  //   } else if (err) {
-  //     console.log({ err });
-  //     return res.status(500).json({ error: 'Server error' });
-  //   }
-
   const { name, description, categoryId, brandId, totalStock } = req.body;
   const createdBy = req.user.id;
   const prices = JSON.parse(req.body.prices);
@@ -69,51 +58,51 @@ const createProduct = async (req, res) => {
   }
 };
 
+
+
+
 const updateProduct = async (req, res) => {
+  const productId = req.params.id;
+  const { name, description, categoryId, brandId } = req.body;
+  const updatedBy = req.user.id;
+  let prices;
+  
+  const file = req.s3FileUrl;
+  const extraFiles = req.s3FileUrls;
 
-  upload.fields([
-    { name: 'file', maxCount: 1 },
-    { name: 'extraFiles', maxCount: 5 },
-  ])(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: 'Error uploading files' });
-    } else if (err) {
-      return res.status(500).json({ error: 'Server error' });
+  console.log({ prices: req.body.prices });
+  try {
+    // Attempt to parse req.body.prices as JSON
+    prices = JSON.parse(req.body.prices);
+  }
+  catch (error) {
+    console.error(error); // Log the parsing error
+    return res.status(400).json({ error: 'Invalid JSON format for prices' });
+  }
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { name, description, file, prices, categoryId, brandId, extraFiles, updatedBy, updatedAt: Date.now() },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      console.log(`Product with ID ${req.params.id} not found`);
+      return res.status(404).json({ error: 'Product not found' });
     }
-
-    const productId = req.params.id;
-    const { name, description, categoryId, brandId } = req.body;
-
-    const prices = JSON.parse(req.body.prices);
-    const updatedBy = req.user.id;
-
-    const file = req.files['file'] ? req.files['file'][0].filename : undefined;
-    const extraFiles = req.files['extraFiles']
-      ? req.files['extraFiles'].map((file) => file.filename)
-      : [];
-
-    try {
-      const updatedProduct = await Product.findByIdAndUpdate(
-        productId,
-        { name, description, file, prices, categoryId, brandId, extraFiles, updatedBy, updatedAt: Date.now() },
-        { new: true }
-      );
-
-      if (!updatedProduct) {
-        console.log(`Product with ID ${req.params.id} not found`);
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      console.log(updatedProduct); // Add this line for debug logging
-      res.json(updatedProduct);
-    } catch (error) {
-      console.error(error); // Add this line for debug logging
-      return res.status(500).json({ error: 'Failed to update Product' });
-    }
-
-
-  });
+    console.log(updatedProduct); // Add this line for debug logging
+    res.json(updatedProduct);
+  }
+  catch (error) {
+    console.error(error); // Add this line for debug logging
+    return res.status(500).json({ error: 'Failed to update Product' });
+  }
 };
+
+
+
+
 
 const getAllProducts = async (req, res) => {
   try {
