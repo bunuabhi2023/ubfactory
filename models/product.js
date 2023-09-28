@@ -12,17 +12,17 @@ const products = new mongoose.Schema({
         maxLength: 255,
     },
     prices: [{
-        sizeId:{
+        sizeId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Size',
             required: true,
         },
-        price:{
+        price: {
             type: String,
             required: true,
             maxLength: 255,
         },
-        promoPrice:{
+        promoPrice: {
             type: String,
             required: false,
             maxLength: 255,
@@ -39,15 +39,41 @@ const products = new mongoose.Schema({
         required: true,
     },
     file: {
-        type: String,
-        required: false,
-        maxLength: 255,
+        Bucket: {
+            type: String,
+            required: false,
+            maxLength: 255,
+        },
+        Key: {
+            type: String,
+            required: false,
+            maxLength: 255,
+        },
+        Url: {
+            type: String,
+            required: false,
+            maxLength: 255,
+        }
     },
-    extraFiles: [{
-        type: String,
-        required: false,
-        maxLength: 255,
-    }],
+    extraFiles: [
+        {
+            Bucket: {
+                type: String,
+                required: false,
+                maxLength: 255,
+            },
+            Key: {
+                type: String,
+                required: false,
+                maxLength: 255,
+            },
+            Url: {
+                type: String,
+                required: false,
+                maxLength: 255,
+            }
+        },
+    ],
     isAvailable: {
         type: Boolean,
         default: true,
