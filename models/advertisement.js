@@ -8,9 +8,21 @@ const advertisements = new mongoose.Schema(
             maxLength:255,
         },
         file: {
-            type:String,
-            required:false,
-            maxLength:255,
+            Bucket:{
+                type:String,
+                required:false,
+                maxLength:255,
+            },
+            Key:{
+                type:String,
+                required:false,
+                maxLength:255,
+            },
+            Url:{
+                type:String,
+                required:false,
+                maxLength:255,
+            }
         },
         status: {
             type:String,
