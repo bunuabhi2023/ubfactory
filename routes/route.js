@@ -24,7 +24,7 @@ const advertisementController = require('../controllers/advertisementController'
 const { auth, isAdmin, isVendor } = require('../middlewares/Auth');
 
 const { customerAuth } = require('../middlewares/CustomerAuth');
-const { imageSingleUpload, imageMultiUpload } = require("../middlewares/multer");
+const { imageSingleUpload, imageMultiUpload, productsFieldsUpload } = require("../middlewares/multer");
 // Home 
 router.get("/", (req, res) => {
     res.send("Welcome to UB Factory Backend");
@@ -80,8 +80,8 @@ router.get('/get-brand-by-id/:id', brandController.getBrandById);
 router.delete('/delete-brand/:id', auth, isAdmin, brandController.deleteBrand);
 
 //Product Route//
-router.post("/create-product", auth, isAdmin, imageSingleUpload, productController.createProduct);
-router.put("/update-product/:id", auth, isAdmin, imageSingleUpload, productController.updateProduct);
+router.post("/create-product", auth, isAdmin, productsFieldsUpload, productController.createProduct);
+router.put("/update-product/:id", auth, isAdmin, productsFieldsUpload, productController.updateProduct);
 router.put("/update-product-availability/:id", auth, productController.updateAvailable);
 router.get("/get-product", productController.getAllProducts);
 router.get("/get-product-by-id/:id", productController.getProductById);

@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
 const sls = require("serverless-http");
-
+const  multer = require('./middlewares/multer');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./config/swagger-config'); // Path to your swaggerConfig.js file
 

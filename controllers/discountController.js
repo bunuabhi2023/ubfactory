@@ -20,6 +20,7 @@ const createDiscount = async (req, res) => {
   const { title, productId, categoryId } = req.body;
   const createdBy = req.user.id;
   const file = req.s3FileUrl;
+  console.log("yaha aa gai")
 
   let newDiscount;
 
