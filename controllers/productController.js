@@ -4,37 +4,28 @@ const Category = require('../models/category');
 const Size = require('../models/size');
 const multer = require('multer');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads/'); // Set the destination folder for uploaded images
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname); // Set the filename for the uploaded image
-  },
-});
 
-const fileFilter = (req, file, cb) => {
-  // Check file type to allow only images
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images are allowed.'), false);
-  }
+const { S3 } = require("@aws-sdk/client-s3");
+const { config } = require('dotenv');
+config();
+
+const params = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "ap-south-1", // Set your desired region
+  useAccelerateEndpoint: false, // Disable accelerated endpoint if not needed
+
 };
 
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-});
+const s3 = new S3(params);
 
 // Function to create a new Product
 const createProduct = async (req, res) => {
   const { name, description, categoryId, brandId, totalStock } = req.body;
   const createdBy = req.user.id;
   const prices = JSON.parse(req.body.prices);
-  const file = req.s3FileUrl;
-  const extraFiles = [];
+  const file = req.s3FileUrls['file'][0];
+  const extraFiles =req.s3FileUrls['extraFiles[]'] || [];
 
   const newProduct = new Product({
     name,
@@ -63,19 +54,18 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const productId = req.params.id;
-  const { name, description, categoryId, brandId } = req.body;
+  const { name, description, categoryId, brandId, removeFile } = req.body;
   const updatedBy = req.user.id;
   let prices;
-  
-  const file = req.s3FileUrl;
-  const extraFiles = req.s3FileUrls;
+
+  const file = req.s3FileUrls['file'] && req.s3FileUrls['file'][0]; // Use '&&' for better null-checking
+  const extraFiles = req.s3FileUrls['extraFiles[]'] || [];
 
   console.log({ prices: req.body.prices });
   try {
     // Attempt to parse req.body.prices as JSON
     prices = JSON.parse(req.body.prices);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error); // Log the parsing error
     return res.status(400).json({ error: 'Invalid JSON format for prices' });
   }
@@ -83,7 +73,16 @@ const updateProduct = async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
-      { name, description, file, prices, categoryId, brandId, extraFiles, updatedBy, updatedAt: Date.now() },
+      {
+        name,
+        description,
+        file,
+        prices,
+        categoryId,
+        brandId,
+        updatedBy,
+        updatedAt: Date.now(),
+      },
       { new: true }
     );
 
@@ -91,10 +90,53 @@ const updateProduct = async (req, res) => {
       console.log(`Product with ID ${req.params.id} not found`);
       return res.status(404).json({ error: 'Product not found' });
     }
+
+    // Handle the removal of files
+    if (removeFile && removeFile.length > 0) {
+      const imagesToRemoveIds = removeFile; // Assuming you have an array like [_id, _id, _id]
+
+      // Create an array to store Promise objects for each image deletion
+      const deletePromises = imagesToRemoveIds.map((_id) => {
+        const imageToDelete = updatedProduct.extraFiles.find(
+          (img) => img._id.toString() === _id
+        );
+
+        if (imageToDelete) {
+          return new Promise((resolve, reject) => {
+            // Assuming you have defined the s3 object elsewhere in your code
+            s3.deleteObject(imageToDelete, (err, data) => {
+              if (err) {
+                console.error("S3 Object Deletion Error:", err);
+                reject(err);
+              } else {
+                console.log("Object Deleted Successfully");
+                resolve();
+              }
+            });
+          });
+        }
+      });
+
+      // Wait for all image deletions to complete
+      await Promise.all(deletePromises);
+
+      // Remove the deleted files from updatedProduct
+      updatedProduct.extraFiles = updatedProduct.extraFiles.filter(
+        (img) => !imagesToRemoveIds.includes(img._id.toString())
+      );
+    }
+
+    // Handle the addition of extraFiles
+    if (extraFiles.length > 0) {
+      updatedProduct.extraFiles.push(...extraFiles);
+    }
+
+    // Save the updated product
+    await updatedProduct.save();
+
     console.log(updatedProduct); // Add this line for debug logging
     res.json(updatedProduct);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error); // Add this line for debug logging
     return res.status(500).json({ error: 'Failed to update Product' });
   }

@@ -24,7 +24,7 @@ const advertisementController = require('../controllers/advertisementController'
 const { auth, isAdmin, isVendor } = require('../middlewares/Auth');
 
 const { customerAuth } = require('../middlewares/CustomerAuth');
-const { imageSingleUpload, imageMultiUpload } = require("../middlewares/multer");
+const { imageSingleUpload, imageMultiUpload, productsFieldsUpload } = require("../middlewares/multer");
 // Home 
 router.get("/", (req, res) => {
     res.send("Welcome to UB Factory Backend");
@@ -80,8 +80,8 @@ router.get('/get-brand-by-id/:id', brandController.getBrandById);
 router.delete('/delete-brand/:id', auth, isAdmin, brandController.deleteBrand);
 
 //Product Route//
-router.post("/create-product", auth, isAdmin, imageSingleUpload, productController.createProduct);
-router.put("/update-product/:id", auth, isAdmin, imageSingleUpload, productController.updateProduct);
+router.post("/create-product", auth, isAdmin, productsFieldsUpload, productController.createProduct);
+router.put("/update-product/:id", auth, isAdmin, productsFieldsUpload, productController.updateProduct);
 router.put("/update-product-availability/:id", auth, productController.updateAvailable);
 router.get("/get-product", productController.getAllProducts);
 router.get("/get-product-by-id/:id", productController.getProductById);
@@ -97,8 +97,8 @@ router.get("/get-less-stock", auth, isVendor, vendorProductController.getLessSto
 
 
 //Discount Route//
-router.post("/create-discount", auth, isAdmin, discountController.createDiscount);
-router.put("/update-discount/:id", auth, isAdmin, discountController.updateDiscount);
+router.post("/create-discount", auth, isAdmin, imageSingleUpload, discountController.createDiscount);
+router.put("/update-discount/:id", auth, isAdmin,imageSingleUpload, discountController.updateDiscount);
 router.get("/get-discount", discountController.getAllDiscount);
 router.get("/get-discount-by-id/:id", discountController.getDiscountById);
 router.delete('/delete-discount/:id', auth, isAdmin, discountController.deleteDiscount);
@@ -149,8 +149,8 @@ router.delete("/delete-promo-code/:id", auth, isAdmin, promoCodeController.delet
 
 
 //Advertisement  Route//
-router.post("/create-advertisement", auth, isAdmin, advertisementController.createAdvertisement);
-router.put("/update-advertisement/:id", auth, isAdmin, advertisementController.updateAdvertisement);
+router.post("/create-advertisement", auth, isAdmin,imageSingleUpload, advertisementController.createAdvertisement);
+router.put("/update-advertisement/:id", auth, isAdmin, imageSingleUpload,advertisementController.updateAdvertisement);
 router.put("/update-advertisement-status/:id", auth, isAdmin, advertisementController.changeStatus);
 router.get("/get-advertisement", advertisementController.getAllAdvertisement);
 router.get("/get-advertisement-by-id/:id", advertisementController.getAdvertisementById);

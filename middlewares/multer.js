@@ -6,26 +6,13 @@ config();
 
 
 const params = {
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-  },
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: "ap-south-1", // Set your desired region
   useAccelerateEndpoint: false, // Disable accelerated endpoint if not needed
+
 };
 
-// const params = {
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//   region: "ap-south-1", // Set your desired region
-//   useAccelerateEndpoint: false, // Disable accelerated endpoint if not needed
-// };
-
-
-
-// console.log(params);
-
-// Create an S3 instance
 const s3 = new S3(params);
 
 // Set the destination folder in your S3 bucket
@@ -77,7 +64,68 @@ exports.imageSingleUpload = (req, res, next) => {
 };
 
 
+exports.productsFieldsUpload = (req, res, next) =>  {
+  multerConfig.fields([
+    { name: "file", maxCount: 1 },
+    { name: "extraFiles[]", maxCount: 10 },
+  ])(req, res, (error) => {
+    if (error) {
+      console.error("Multer Error:", error);
+      return next(new ErrorHandler("Multer upload failed", 500));
+    }
 
+    // Initialize an object to store the S3 URLs for each uploaded file
+    req.s3FileUrls = {};
+
+    // Map the uploaded files to S3 upload promises
+    const uploadPromises = Object.keys(req.files).map((fieldName) => {
+      return Promise.all(
+        req.files[fieldName].map((file) => {
+          const uniqueKey = `${Date.now()}-${Math.floor(Math.random() * 10000)}-${file.originalname}`;
+
+          // Define the S3 upload parameters for each file
+          const s3Params = {
+            Bucket: process.env.AWS_BUCKET,
+            Key: `${s3Destination}${uniqueKey}`,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+            // ACL: "public-read",
+          };
+
+          // Return a promise that resolves when the file is uploaded to S3
+          return new Promise((resolve, reject) => {
+            s3.putObject(s3Params, (err, data) => {
+              if (err) {
+                console.error("S3 Upload Error:", err);
+                reject(err);
+              } else {
+                if (!req.s3FileUrls[fieldName]) req.s3FileUrls[fieldName] = [];
+                req.s3FileUrls[fieldName].push({
+                  Bucket: process.env.AWS_BUCKET,
+                  Key: `${s3Destination}${uniqueKey}`,
+                  Url: `https://${s3Params.Bucket}.s3.amazonaws.com/${s3Params.Key}`,
+                });
+
+                resolve(data);
+              }
+            });
+          });
+        })
+      );
+    });
+
+    // Wait for all file uploads to S3 to complete
+    Promise.all(uploadPromises.flat())
+      .then(() => {
+        console.log("ho gye upload");
+        console.log(req.s3FileUrls);
+        next(); // Continue to the next middleware if all uploads are successful
+      })
+      .catch((err) => {
+        next(new ErrorHandler("S3 upload failed", 500));
+      });
+  });
+};
 
 
 
