@@ -14,7 +14,7 @@ const products = new mongoose.Schema({
     prices: [{
         sizeId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Size',
+            ref: 'Size', 
             required: true,
         },
         price: {

@@ -184,33 +184,15 @@ const getProductById = async (req, res) => {
       .populate('categoryId', 'name')
       .populate('createdBy', 'name')
       .populate('updatedBy', 'name')
-      .exec();
+      .populate('prices', 'sizeId') // Try this separately
+      .populate({ path: 'prices.sizeId', model: 'Size', select: 'size' })
+            .exec();
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-    const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
-    const pricesArray = product.prices;
-
-    const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-      const sizeInfo = await Size.findById(price.sizeId).select('size');
-      return {
-        ...price._doc,
-        sizeName: sizeInfo ? sizeInfo.size : null,
-      };
-    }));
-
-    const productWithUrls = {
-      ...product._doc,
-      fileUrl,
-      extraFilesUrls,
-      prices: pricesWithSizeNames,
-    };
-
-    res.json(productWithUrls);
+    res.json({product});
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to fetch the product' });
