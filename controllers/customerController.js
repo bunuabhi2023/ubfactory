@@ -3,33 +3,8 @@ const Product = require('../models/product');
 const Size = require('../models/size');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { options } = require("../routes/route");
-require("dotenv").config();
 const multer = require('multer');
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, './uploads/'); // Set the destination folder for uploaded images
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + '-' + file.originalname); // Set the filename for the uploaded image
-    },
-  });
   
-  const fileFilter = (req, file, cb) => {
-    // Check file type to allow only images
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed.'), false);
-    }
-  };
-  
-  const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-  }).single('file');
 
 
 exports.signup = async(req,res) =>{
