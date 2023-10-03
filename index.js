@@ -18,7 +18,8 @@ app.use(
     cors({
         origin: [
             "http://localhost:3000",
-            "https://ubfactory-frontend.vercel.app"
+            "https://ubfactory-frontend.vercel.app",
+            https://ubfactory-web.vercel.app,
           ],
           credentials: true,
     })
