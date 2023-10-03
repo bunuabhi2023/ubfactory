@@ -19,7 +19,7 @@ app.use(
         origin: [
             "http://localhost:3000",
             "https://ubfactory-frontend.vercel.app",
-            https://ubfactory-web.vercel.app,
+            "https://ubfactory-web.vercel.app",
           ],
           credentials: true,
     })
