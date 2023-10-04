@@ -50,8 +50,6 @@ const createProduct = async (req, res) => {
 };
 
 
-
-
 const updateProduct = async (req, res) => {
   const productId = req.params.id;
   const { name, description, categoryId, brandId, removeFile } = req.body;
@@ -143,9 +141,6 @@ const updateProduct = async (req, res) => {
 };
 
 
-
-
-
 const getAllProducts = async (req, res) => {
   try {
 
@@ -166,6 +161,7 @@ const getAllProducts = async (req, res) => {
       .populate('categoryId', 'name')
       .populate('createdBy', 'name')
       .populate('updatedBy', 'name')
+      .populate({ path: 'prices.sizeId', model: 'Size', select: 'size' })
       .sort(sortOptions) // Apply sorting options
       .exec();
     res.json(products);
@@ -241,28 +237,20 @@ const getBestSalingProducts = async (req, res) => {
       .exec();
 
     const productsWithUrls = await Promise.all(products.map(async (product) => {
-      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-      const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
       const pricesArray = product.prices;
       const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
-        const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
-        // console.log(sizeInfo);
+        const sizeInfo = await Size.findById(price.sizeId).select('size');
         return {
           ...price._doc,
           sizeName: sizeInfo ? sizeInfo.size : null,
         };
       }));
-
       return {
         ...product._doc,
-        fileUrl,
-        extraFilesUrls,
         prices: pricesWithSizeNames,
       };
     }));
 
-    // Sort products by saleCount in descending order
     productsWithUrls.sort((a, b) => b.saleCount - a.saleCount);
 
     // Get the top two products
@@ -287,9 +275,6 @@ const getProductByCategory = async (req, res) => {
       .exec();
 
     const productsWithUrls = await Promise.all(products.map(async (product) => {
-      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-      const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
       const pricesArray = product.prices;
       const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
         const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
@@ -302,8 +287,6 @@ const getProductByCategory = async (req, res) => {
 
       return {
         ...product._doc,
-        fileUrl,
-        extraFilesUrls,
         prices: pricesWithSizeNames,
       };
     }));
