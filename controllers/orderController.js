@@ -259,27 +259,8 @@ const getMyOrder = async (req, res) => {
             .populate('customerAddressId')
             .exec();
 
-        const ordersWithImageUrls = myOrder.map(order => {
-            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
-                const product = item.productId;
-                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
 
-                return {
-                    ...item.toObject(),
-                    fileUrl: fileUrl,          // Add the main image URL to the item
-                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
-                };
-            });
-            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
-            return {
-                ...order.toObject(),
-                itemDetails: itemDetailsWithImageUrls,
-                invoiceUrl: invoiceFileUrl
-            };
-        });
-
-        return res.status(200).json(ordersWithImageUrls);
+        return res.status(200).json(myOrder);
     } catch (error) {
         console.log(error);
     }
@@ -296,27 +277,7 @@ const getVendorOrder = async (req, res) => {
             .populate('customerAddressId')
             .exec();
 
-        const ordersWithImageUrls = myOrder.map(order => {
-            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
-                const product = item.productId;
-                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
-                return {
-                    ...item.toObject(),
-                    fileUrl: fileUrl,          // Add the main image URL to the item
-                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
-                };
-            });
-            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
-            return {
-                ...order.toObject(),
-                itemDetails: itemDetailsWithImageUrls,
-                invoiceUrl: invoiceFileUrl
-            };
-        });
-
-        return res.status(200).json(ordersWithImageUrls);
+        return res.status(200).json(myOrder);
     } catch (error) {
         console.log(error);
     }
@@ -330,28 +291,7 @@ const getAllOrderForAdmin = async (req, res) => {
             .populate('userId', 'name')
             .populate('customerAddressId')
             .exec();
-
-        const ordersWithImageUrls = myOrder.map(order => {
-            const itemDetailsWithImageUrls = order.itemDetails.map(item => {
-                const product = item.productId;
-                const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-                const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
-
-                return {
-                    ...item.toObject(),
-                    fileUrl: fileUrl,          // Add the main image URL to the item
-                    extraFilesUrls: extraFilesUrls // Add the extra images URLs to the item
-                };
-            });
-            const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
-            return {
-                ...order.toObject(),
-                itemDetails: itemDetailsWithImageUrls,
-                invoiceUrl: invoiceFileUrl
-            };
-        });
-
-        return res.status(200).json(ordersWithImageUrls);
+        return res.status(200).json(myOrder);
     } catch (error) {
         console.log(error);
     }
@@ -372,32 +312,16 @@ const getOrderById = async (req, res) => {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        const itemDetailsWithImageUrls = order.itemDetails.map(item => {
-            const product = item.productId;
-            const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-            const extraFilesUrls = product.extraFiles.map(extraFile => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+    
 
-            return {
-                ...item.toObject(),
-                fileUrl: fileUrl,
-                extraFilesUrls: extraFilesUrls
-            };
-        });
 
-        const invoiceFileUrl = order.invoice ? `${req.protocol}://${req.get('host')}/uploads/${order.invoice}` : null;
-
-        const orderWithImageUrls = {
-            ...order.toObject(),
-            itemDetails: itemDetailsWithImageUrls,
-            invoiceUrl: invoiceFileUrl
-        };
-
-        return res.status(200).json(orderWithImageUrls);
+        return res.status(200).json(order);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 };
+
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const earthRadius = 6371; // Radius of the Earth in kilometers
@@ -438,8 +362,10 @@ const updateOrderStatus = async (req, res) => {
     if (userRole == "Vendor") {
         const order = await Order.findOneAndUpdate(
             { userId: userId, _id: _id },
-
-            { status: status },
+            { 
+                status: status,
+                deliveryDate: status === 'delivered' ? Date.now() : null,
+            },
             { new: true }
         );
         orderData = order;
@@ -448,7 +374,10 @@ const updateOrderStatus = async (req, res) => {
         const order = await Order.findOneAndUpdate(
             { _id: _id },
 
-            { status: status },
+            { status: status ,
+                deliveryDate: status === 'delivered' ? Date.now() : null,
+            
+            },
             { new: true }
         );
         orderData = order;

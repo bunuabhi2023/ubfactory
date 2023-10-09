@@ -107,7 +107,9 @@ const getLessStock = async (req, res)=> {
     if(!vendorProducts) res.status(200).json({ productsWithUrls:[] });
 
 
-    const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
+    let productsWithUrls;
+    if(vendorProducts)
+   { productsWithUrls= await Promise.all(vendorProducts?.map(async (vendorProduct) => {
       const product = vendorProduct?.productId;
 
         const pricesArray = product?.prices;
@@ -128,7 +130,7 @@ const getLessStock = async (req, res)=> {
             extraFilesUrls,
             prices: pricesWithSizeNames,
         };
-    }));
+    }));}
     res.status(200).json({ productsWithUrls });
   } catch (error) {
     console.error(error);

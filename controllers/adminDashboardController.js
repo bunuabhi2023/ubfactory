@@ -3,6 +3,7 @@ const Customer = require('../models/customer');
 const Order = require('../models/order');
 const Request = require('../models/request');
 const SubscribedCustomer = require('../models/subscribedCustomer');
+const order = require('../models/order');
 
 const dashboardData = async (req, res) => {
     try {
@@ -214,7 +215,6 @@ function getWeekName(date) {
     const dayIndex = date.getDay();
     return weekdays[dayIndex];
 }
-
 const getCurrentWeekOrderCount = async () => {
     try {
         // Calculate the start and end dates for the current week starting from Monday
@@ -272,7 +272,6 @@ const getCurrentWeekOrderCount = async () => {
         throw error;
     }
 };
-
 const currentWeekOrderData = async (req, res) => {
     try {
         // Get the current week-wise order counts starting from Monday
@@ -285,9 +284,91 @@ const currentWeekOrderData = async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 };
+async function getOrderCountsByMonth(userId) {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const previousYear = currentYear - 1;
 
+  const matchConditions = [
+    { $or: [
+        { status: "delivered" },
+        { status: "sold" },
+      ]
+    },
+    { deliveryDate: {
+        $gte: new Date(`${currentYear}-01-01`),
+        $lte: new Date(`${currentYear}-12-31`),
+      }
+    },
+  ];
+
+  if (userId !== null) {
+    matchConditions.unshift({ userId:userId });
+  }
+
+  const pipeline = [
+    {
+      $match: {
+        $and: matchConditions,
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$deliveryDate" },
+        revenue: { $sum: { $toDouble: "$totalPrice" } }, // Assuming totalPrice is a numeric field
+      },
+    },
+  ];
+  const currentYearCounts = await Order.aggregate(pipeline);
+
+  // Similar pipeline for previous year
+  const previousYearCounts = await Order.aggregate([
+    {
+      $match: {
+        $and: matchConditions,
+        createdAt: {
+          $gte: new Date(`${previousYear}-01-01`),
+          $lte: new Date(`${previousYear}-12-31`),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$createdAt" },
+        revenue: { $sum: { $toDouble: "$totalPrice" } }, // Assuming totalPrice is a numeric field
+      },
+    },
+  ]);
+
+ return { currentYearCounts, previousYearCounts }
+}
+const totalRevenue = async(req, res)=>{
+    const user= req.user;
+    try{
+
+        if(user.role === 'Admin')
+        {const revenue = await getOrderCountsByMonth(null);
+        res.status(200).json(revenue);}
+        else {
+            const revenue = await getOrderCountsByMonth(user._id);
+            res.status(200).json(revenue);
+        }
+    }
+    catch(err)
+    {
+        res.status(500).send('something went wrong')
+
+    }
+}
 
 module.exports = {
     dashboardData,
-    currentWeekOrderData
+    currentWeekOrderData,
+    totalRevenue
 }
+
+
+
+
+
+  

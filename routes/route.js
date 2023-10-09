@@ -42,6 +42,7 @@ router.delete("/delete-user/:id", auth, isAdmin, userController.deleteUser);
 //Admin Dashboard Route//
 router.get("/get-dashboard-data", auth, isAdmin, adminDashboardController.dashboardData);
 router.get("/get-every-day-order", auth, isAdmin, adminDashboardController.currentWeekOrderData);
+router.get('/get-total-revenue', auth , adminDashboardController.totalRevenue);
 
 //Vendor Dashboard Route//
 router.get("/get-vendor-dashboard-data", auth, isVendor, vendorDashboardController.vendorDashboardData);
