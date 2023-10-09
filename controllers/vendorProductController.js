@@ -59,9 +59,7 @@ const getVendorProducts = async (req, res)=> {
   
       // Retrieve vendor products based on the vendor's userId
       const vendorProducts = await VendorProduct.find({ vendorId: userId }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).populate('sizeId', 'size').exec();
-
       if(!vendorProducts)        res.status(200).json({ productsWithUrls:[] });
-
       const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
         const product = vendorProduct?.productId;
 
@@ -70,7 +68,6 @@ const getVendorProducts = async (req, res)=> {
           if(pricesArray)
         { pricesWithSizeNames =  await Promise.all(pricesArray?.map(async (price) => {
             const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
-            // console.log(sizeInfo);
               return {
                   ...price._doc,
                   sizeName: sizeInfo ? sizeInfo.size : null,
@@ -107,12 +104,13 @@ const getLessStock = async (req, res)=> {
     // Retrieve vendor products based on the vendor's userId
     const vendorProducts = await VendorProduct.find({ vendorId: userId, totalStock:{ $lte: 10 } }).populate({ path: 'productId', populate: [{ path: 'categoryId', model: 'Category', select: 'name' }, { path: 'brandId', model: 'Brand', select: 'name' }]}).populate('sizeId', 'size').exec();
 
-    const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
-      const product = vendorProduct.productId;
-      const fileUrl = product.file ? `${req.protocol}://${req.get('host')}/uploads/${product.file}` : null;
-      const extraFilesUrls = product.extraFiles.map((extraFile) => `${req.protocol}://${req.get('host')}/uploads/${extraFile}`);
+    if(!vendorProducts) res.status(200).json({ productsWithUrls:[] });
 
-        const pricesArray = product.prices;
+
+    const productsWithUrls = await Promise.all(vendorProducts.map(async (vendorProduct) => {
+      const product = vendorProduct?.productId;
+
+        const pricesArray = product?.prices;
         const pricesWithSizeNames = await Promise.all(pricesArray.map(async (price) => {
           const sizeInfo = await Size.findById(price.sizeId).select('size'); // Adjust this based on your actual schema
           // console.log(sizeInfo);
